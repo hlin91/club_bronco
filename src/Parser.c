@@ -2,17 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 #define BUFF_MAX 1024
 
 /*
   Parse an HTTP request and extract the request line, headers, and message
+  Returns false on an empty string
   s: The request to parse
   req: String to store the extracted request line
   headers: Array of unallocated strings to store the extracted headers
   message: String to store the optional message
   numHeaders: Stores the number of headers parsed
 */
-void parseRequest(char *s, char *req, char **headers, char *message, unsigned int *numHeaders)
+bool parseRequest(char *s, char *req, char **headers, char *message, unsigned int *numHeaders)
 {
     /* TODO: Test this */
     char temp[BUFF_MAX] = "\0";
@@ -24,7 +26,7 @@ void parseRequest(char *s, char *req, char **headers, char *message, unsigned in
     message[0] = '\0';
     *numHeaders = 0;
     if (strlen(s) == 0)
-        return;
+        return false;
     /* Tokenize copy of input string */
     token = strtok(temp, "\n");
     /* Grab first line as request line */
@@ -49,15 +51,17 @@ void parseRequest(char *s, char *req, char **headers, char *message, unsigned in
         if (token != NULL) /* If the token just added is not the last one */
             strcat(message, "\n"); /* Reintroduce the newline character */
     }
+    return true;
 }
 
 /*
   Parse a HTTP header into a key value pair
+  Returns true when both a key and a value are successfully extracted, false otherwise
   s: The header to parse
   key: String to store the token to the left of the colon
   val: String to store the token to the right of the colon
 */
-void parseHeader(char *s, char *key, char *val)
+bool parseHeader(char *s, char *key, char *val)
 {
     /* TODO: Test this */
     unsigned int pos1 = 0;
@@ -67,17 +71,22 @@ void parseHeader(char *s, char *key, char *val)
     key[0] = '\0';
     val[0] = '\0';
     if (pos2 == 0) /* Empty string passed */
-        return;
+        return false;
     /* Split the header at the colon */
     while (s[i] != ':' && i <= pos2)
         ++i;
+    if (i > pos2) /* No colon found */
+        return false;
     strncpy(key, s, i - pos1);
     key[i - pos1] = '\0';
     ++i;
+    if (i > pos2) /* No value found */
+        return false;
     while (isspace(s[i]))
         ++i;
     strncpy(val, s + i, pos2 - i + 1);
     val[pos2 - i + 1] = '\0';
+    return true;
 }
 
 /*
@@ -89,8 +98,7 @@ void parseHeader(char *s, char *key, char *val)
   message: String to store the optional message
   numHeaders: Stores the number of headers parsed
 */
-void parseResponse(char *s, char *status, char **headers, char *message, unsigned int *numHeaders)
+bool parseResponse(char *s, char *status, char **headers, char *message, unsigned int *numHeaders)
 {
-    parseRequest(s, status, headers, message, numHeaders);
-    return;
+    return parseRequest(s, status, headers, message, numHeaders);
 }
