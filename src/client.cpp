@@ -12,7 +12,6 @@ int main()
 {
     struct sockaddr_in server;
     int fd;
-    int portNum = argv;
 
     int connection;
 
