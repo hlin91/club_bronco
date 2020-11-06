@@ -6,13 +6,13 @@
 #define BUFF_MAX 1024
 
 /*
-  Parse an HTTP request and extract the request line, headers, and message
-  Returns false on an empty string
-  s: The request to parse
-  req: String to store the extracted request line
-  headers: Array of unallocated strings to store the extracted headers
-  message: String to store the optional message
-  numHeaders: Stores the number of headers parsed
+    Parse an HTTP request and extract the request line, headers, and message
+    Returns false on an empty string
+    s: The request to parse
+    req: String to store the extracted request line
+    headers: Array of unallocated strings to store the extracted headers
+    message: String to store the optional message
+    numHeaders: Stores the number of headers parsed
 */
 bool parseRequest(char *s, char *req, char **headers, char *message, unsigned int *numHeaders)
 {
@@ -55,11 +55,11 @@ bool parseRequest(char *s, char *req, char **headers, char *message, unsigned in
 }
 
 /*
-  Parse a HTTP header into a key value pair
-  Returns true when both a key and a value are successfully extracted, false otherwise
-  s: The header to parse
-  key: String to store the token to the left of the colon
-  val: String to store the token to the right of the colon
+    Parse a HTTP header into a key value pair
+    Returns true when both a key and a value are successfully extracted, false otherwise
+    s: The header to parse
+    key: String to store the token to the left of the colon
+    val: String to store the token to the right of the colon
 */
 bool parseHeader(char *s, char *key, char *val)
 {
@@ -90,13 +90,13 @@ bool parseHeader(char *s, char *key, char *val)
 }
 
 /*
-  Parse an HTTP response and extract the status line, headers, and optional message
-  This is just parseRequest with different semantics
-  s: The response to parse
-  status: String to store the status line
-  headers: Array of unallocated strings to store the headers
-  message: String to store the optional message
-  numHeaders: Stores the number of headers parsed
+    Parse an HTTP response and extract the status line, headers, and optional message
+    This is just parseRequest with different semantics
+    s: The response to parse
+    status: String to store the status line
+    headers: Array of unallocated strings to store the headers
+    message: String to store the optional message
+    numHeaders: Stores the number of headers parsed
 */
 bool parseResponse(char *s, char *status, char **headers, char *message, unsigned int *numHeaders)
 {
