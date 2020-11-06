@@ -3,7 +3,12 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
 #define BUFF_MAX 1024
+
+bool parseRequest(char *, char *, char **, char *, unsigned int *);
+bool parseHeader(char *, char *, char *);
+bool parseResponse(char *, char *, char **, char *, unsigned int *);
 
 /*
     Parse an HTTP request and extract the request line, headers, and message
@@ -16,10 +21,9 @@
 */
 bool parseRequest(char *s, char *req, char **headers, char *message, unsigned int *numHeaders)
 {
-    /* TODO: Test this */
-    char temp[BUFF_MAX] = "\0";
-    strcpy(temp, s);
-    char *token = NULL;
+    char token[BUFF_MAX];
+    char *p1 = s;
+    char *p2 = NULL;
     /* Initialize return values */
     req[0] = '\0';
     headers[0] = NULL;
@@ -27,30 +31,37 @@ bool parseRequest(char *s, char *req, char **headers, char *message, unsigned in
     *numHeaders = 0;
     if (strlen(s) == 0)
         return false;
-    /* Tokenize copy of input string */
-    token = strtok(temp, "\n");
     /* Grab first line as request line */
+    p2 = strchr(p1, '\n');
+    if (p2 == NULL) /* Request is a one liner */
+    {
+        strcpy(req, s);
+        return true;
+    }
+    strncpy(token, p1, p2 - p1);
+    token[p2 - p1] = '\0';
     strcpy(req, token);
     /* Store subsequent lines as headers until NULL or blank line is encountered. Terminate with NULL */
-    token = strtok(NULL, "\n");
-    while (token != NULL && strcmp(token, "\n") != 0)
+    p1 = p2 + 1;
+    p2 = strchr(p1, '\n');
+    while (p2 != NULL)
     {
+        strncpy(token, p1, p2 - p1);
+        token[p2 - p1] = '\0';
+        if (strlen(token) == 0) /* Encountered blank line */
+            break;
         headers[*numHeaders] = (char*) malloc(BUFF_MAX * sizeof(char));
         strcpy(headers[*numHeaders], token);
         ++(*numHeaders);
-        token = strtok(NULL, "\n");
+        p1 = p2 + 1;
+        p2 = strchr(p1, '\n');
     }
     headers[*numHeaders] = NULL;
+    if (p2 == NULL)
+        return true;
     /* Store the remainder as the message body */
-    if (token != NULL)
-        token = strtok(NULL, "\n");
-    while (token != NULL)
-    {
-        strcat(message, token);
-        token = strtok(NULL, "\n");
-        if (token != NULL) /* If the token just added is not the last one */
-            strcat(message, "\n"); /* Reintroduce the newline character */
-    }
+    p1 = p2 + 1;
+    strcpy(message, p1);
     return true;
 }
 
@@ -63,7 +74,6 @@ bool parseRequest(char *s, char *req, char **headers, char *message, unsigned in
 */
 bool parseHeader(char *s, char *key, char *val)
 {
-    /* TODO: Test this */
     unsigned int pos1 = 0;
     unsigned int pos2 = strlen(s);
     unsigned int i = pos1;
@@ -102,3 +112,29 @@ bool parseResponse(char *s, char *status, char **headers, char *message, unsigne
 {
     return parseRequest(s, status, headers, message, numHeaders);
 }
+
+/* Test driver */
+/* int main() */
+/* { */
+/*     char test[BUFF_MAX] = "HTTP/1.1 200 OK\nDate: Sun, 28 Jul 2013 15:37:37 GMT\nServer: Apache\nLast-Modified: Sun, 07 Jul 2013 06:13:43 GMT\nTransfer-Encoding: chunked\nConnection: Keep-Alive\nContent-Type: text/html; charset=UTF-8\n\nThis is the message body"; */
+/*     char status[BUFF_MAX]; */
+/*     char *headers[BUFF_MAX]; */
+/*     char message[BUFF_MAX]; */
+/*     unsigned int numHeaders; */
+/*     bool ok = parseResponse(test, status, headers, message, &numHeaders); */
+/*     char key[BUFF_MAX]; */
+/*     char val[BUFF_MAX]; */
+/*     printf("Ok: %d\n", ok); */
+/*     printf("Status: %s\n", status); */
+/*     printf("Headers parsed: %d\n", numHeaders); */
+/*     puts("Headers..."); */
+/*     for (unsigned int i = 0; i < numHeaders; ++i) */
+/*     { */
+/*         ok = parseHeader(headers[i], key, val); */
+/*         if (!ok) */
+/*             puts("Warning: bad header"); */
+/*         printf("%s: %s\n", key, val); */
+/*         free(headers[i]); */
+/*     } */
+/*     printf("Message: %s\n", message); */
+/* } */
