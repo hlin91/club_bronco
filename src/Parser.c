@@ -49,7 +49,7 @@ bool parseRequest(char *s, char *req, char **headers, char *message, unsigned in
         token[p2 - p1] = '\0';
         if (strlen(token) == 0) /* Encountered blank line */
             break;
-        headers[*numHeaders] = (char*) malloc(BUFF_MAX * sizeof(char));
+        headers[*numHeaders] = (char*) malloc(strlen(token) * sizeof(char));
         strcpy(headers[*numHeaders], token);
         ++(*numHeaders);
         p1 = p2 + 1;
