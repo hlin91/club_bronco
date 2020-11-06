@@ -3,7 +3,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <stdio.h>
 #define BUFF_MAX 1024
 
 bool parseRequest(char *, char *, char **, char *, unsigned int *);
@@ -112,29 +111,3 @@ bool parseResponse(char *s, char *status, char **headers, char *message, unsigne
 {
     return parseRequest(s, status, headers, message, numHeaders);
 }
-
-/* Test driver */
-/* int main() */
-/* { */
-/*     char test[BUFF_MAX] = "HTTP/1.1 200 OK\nDate: Sun, 28 Jul 2013 15:37:37 GMT\nServer: Apache\nLast-Modified: Sun, 07 Jul 2013 06:13:43 GMT\nTransfer-Encoding: chunked\nConnection: Keep-Alive\nContent-Type: text/html; charset=UTF-8\n\nThis is the message body"; */
-/*     char status[BUFF_MAX]; */
-/*     char *headers[BUFF_MAX]; */
-/*     char message[BUFF_MAX]; */
-/*     unsigned int numHeaders; */
-/*     bool ok = parseResponse(test, status, headers, message, &numHeaders); */
-/*     char key[BUFF_MAX]; */
-/*     char val[BUFF_MAX]; */
-/*     printf("Ok: %d\n", ok); */
-/*     printf("Status: %s\n", status); */
-/*     printf("Headers parsed: %d\n", numHeaders); */
-/*     puts("Headers..."); */
-/*     for (unsigned int i = 0; i < numHeaders; ++i) */
-/*     { */
-/*         ok = parseHeader(headers[i], key, val); */
-/*         if (!ok) */
-/*             puts("Warning: bad header"); */
-/*         printf("%s: %s\n", key, val); */
-/*         free(headers[i]); */
-/*     } */
-/*     printf("Message: %s\n", message); */
-/* } */
