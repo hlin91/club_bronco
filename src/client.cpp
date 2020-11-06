@@ -17,19 +17,17 @@ int main()
     int connection;
 
     char message[1024];
-
+    
+    // Populate socket address structure
     server.sin_family = AF_INET;
     server.sin_port = htons(portNum);
     //server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    fd = socket(AF_INET, SOCK_STREAM,0);
-
-    if (fd == -1) {
-        cout << "Socket creation error\n";
-        perror("Socket creation error");
+    // Attempt to create a socket and assign it to fd
+    if (fd = socket(AF_INET, SOCK_STREAM, 0) < 0) {
+        perror("Error with socket");
         return -1;
     }
-
 
     inet_pton(AF_INET, "127.0.0.1", &server.sin_addr); //This binds the client to localhost
     if (connect(fd, (struct sockaddr *) &server, sizeof(server)) == -1) {
@@ -47,7 +45,7 @@ int main()
             return 0;
         }
         memset(&message,0,sizeof(message));
-    //An extra breaking condition can be added here (to terminate the while loop)
+        //An extra breaking condition can be added here (to terminate the while loop)
     }
     return 0;
 }
