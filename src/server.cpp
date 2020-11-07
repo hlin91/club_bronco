@@ -4,8 +4,41 @@
 #include <iostream>
 #include <cstring>
 #include <arpa/inet.h>
+#include <signal.h>
+#include <pthread.h>
+#include "utils.h"
 
 using namespace std;
+
+int create_server_socket(int port) {
+
+    struct sockaddr_in server_address;
+    
+    int socket = socket(AF_INET,
+                        SOCK_STREAM,
+                        0);
+
+    bzero(&server_address, sizeof(server_address));
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = INADDR_ANY;
+    server_address.sin_port = htons(port);
+
+    cout << "Listening for requests on port " <<
+}
+
+void* handle_client(void* client_ptr) {
+    pthread_detach(pthread_self());
+
+    int client = *((int*) client_ptr);
+
+    char buffer[BUFF_SIZE + 1];
+    bzero(buffer, sizeof(buffer));
+    int bytes_read = recv(client, buffer, sizeof(buffer), 0); 
+    if (bytes_read < 0)
+    { 
+        error_msg("Problem with recv call", false);
+    }
+}
 
 int main() {
     struct sockaddr_in server;
@@ -46,20 +79,14 @@ int main() {
     }
 
     // Loop until calling accept returns -1 or lower value
-    while (connection = accept(fd, (struct sockaddr *)NULL, NULL)) {
-        int pid;
+    while (true) {
+        int client = accept(fd, (struct sockaddr *)NULL, NULL);
 
-        // Fork child process to service connection
-        if ((pid = fork()) == 0) {
-            while (recv(connection, message, 1024, 0) > 0) {
-                cout << message;
-                if (strcmp(message,"exit") == 0) {
-                    close(fd);
-                    return 0;
-                }
-                memset(&message, 0, sizeof(message));
-            }
-            exit(0);
+        pthread_t tid;
+        int flag = pthread_create(&tid, NULL, handle_client, &client);
+        if (flag < 0) 
+        {
+            perror("Problem creating thread");
         }
     }
 }
