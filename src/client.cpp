@@ -15,6 +15,8 @@ int main()
 
     int connection;
 
+    int portNum;
+
     char message[1024];
     
     // Populate socket address structure
