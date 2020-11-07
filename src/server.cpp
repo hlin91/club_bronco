@@ -58,7 +58,7 @@ int main() {
     // Attempt to create a socket and assign it to fd
     if (fd = socket(AF_INET, SOCK_STREAM, 0) < 0) {
         perror("Error with socket");
-        return -1;
+        exit(EXIT_FAILURE);
     }
 
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) { 
