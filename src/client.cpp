@@ -20,9 +20,7 @@ int create_server_socket(int port) {
     server_address.sin_port = htons(port);
     
     //Create the socket
-    int sock = socket(AF_INET,
-                        SOCK_STREAM,
-                        0);
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
 
     //Check for error with socket
     if (sock < 0) {
@@ -36,7 +34,7 @@ int create_server_socket(int port) {
     }
 
     // Attempt to make the socket (fd) a listening type socket
-    if (listen(sock, 10) <= -1) {
+    if (listen(sock, 10) < 0) {
         perror("Could not make the socket a listening type socket");
         exit(EXIT_FAILURE);
     }
