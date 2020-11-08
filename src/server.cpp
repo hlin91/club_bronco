@@ -9,6 +9,16 @@
 
 using namespace std;
 
+int check_if_error(int returned_value, char *error_msg)
+{
+    if (returned_value < 0)
+    {
+        perror(error_msg);
+        exit(EXIT_FAILURE);
+    }
+    return returned_value;
+}
+
 int create_server_socket(int port) {
 
     struct sockaddr_in server_address;
@@ -24,21 +34,12 @@ int create_server_socket(int port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
 
     //Check for error with socket
-    if (sock < 0) {
-        perror("Error with socket");
-        exit(EXIT_FAILURE);
-    }
+    check_if_error(sock, "Error with socket");
 
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) { 
-        perror("setsockopt"); 
-        exit(EXIT_FAILURE); 
-    }
+    check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)), "setsockopt");
 
     // Attempt to make the socket (fd) a listening type socket
-    if (listen(sock, 10) < 0) {
-        perror("Could not make the socket a listening type socket");
-        exit(EXIT_FAILURE);
-    }
+    check_if_error(listen(sock, 10), "Could not make the socket a listening type socket");
 
     cout << "Listening for requests on port " << port << endl;
 
@@ -54,11 +55,9 @@ void* handle_client(void* client_ptr) {
     //Request from the client
     char request[BUFSIZ + 1];
     bzero(request, sizeof(request));
-    int bytes_read = recv(client, request, sizeof(request), 0); 
-    if (bytes_read < 0)
-    {
-        perror("Error reading from client"); 
-    }
+    int bytes_read = recv(client, request, sizeof(request), 0);
+    check_if_error(bytes_read, "Error reading from client");
+
     cout << request << endl;
     close(client);
     return 0;
@@ -74,10 +73,7 @@ int main() {
 
         pthread_t tid;
         int flag = pthread_create(&tid, NULL, handle_client, &client);
-        if (flag < 0) 
-        {
-            perror("Problem creating thread");
-        }
+        check_if_error(flag, "Problem creating thread");
     }
 
     return 0;
