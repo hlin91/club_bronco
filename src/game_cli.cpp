@@ -46,16 +46,22 @@ private:
 	float walkSpeed; // The walk speed of the player in pixels per second
 	std::unique_ptr<olc::Sprite> pAvatar; // The avatar of the player character
 	std::unique_ptr<olc::Decal> dpAvatar; // Decal version of player avatar
+	std::unique_ptr<olc::Sprite> bg; // The background image
+	std::unique_ptr<olc::Decal> dbg; // Decal version of background image
+	olc::vf2d origin; // The 0,0 position
 public:
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
+		origin = {0, 0};
 		player.pos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
 		player.currPos = player.pos;
 		float playerTheta = 0;
 		walkSpeed = 100;
 		pAvatar = std::make_unique<olc::Sprite>("./imgs/player.png");
 		dpAvatar = std::make_unique<olc::Decal>(pAvatar.get());
+		bg = std::make_unique<olc::Sprite>("./imgs/bg.png");
+		dbg = std::make_unique<olc::Decal>(bg.get());
 		return true;
 	}
 
@@ -79,7 +85,7 @@ public:
 				c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
 			}
 		}
-		//Clear(olc::BLACK); // Erase the previous frame
+		DrawDecal(origin, dbg.get()); // Draw the background
 		DrawDecal(player.currPos, dpAvatar.get()); // Draw the player
 		for (auto c : others) // Draw the other players
 			DrawDecal(c.currPos, dpAvatar.get());
@@ -91,7 +97,7 @@ public:
 int main()
 {
 	ClubBronco cb;
-	if (cb.Construct(1280, 960, 1, 1))
+	if (cb.Construct(1280, 720, 1, 1))
 		cb.Start();
 
 	return 0;
