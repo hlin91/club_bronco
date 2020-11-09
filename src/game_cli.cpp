@@ -3,6 +3,34 @@
 #include <cmath>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 
+struct Character
+{
+	olc::vf2d pos; // The character's designated position
+	olc::vf2d currPos; // The character's current position
+	float theta; // Angle in radians from horizontal axis of line from current position to designated position
+
+	Character()
+	{
+		pos = {0, 0};
+		currPos = {0, 0};
+		theta = 0;
+	}
+
+	Character(olc::vf2d &p, olc::vf2d &cp, float t)
+	{
+		pos = p;
+		currPos = cp;
+		theta = t;
+	}
+
+	void move(float x, float y) // Move the character to specified position and update theta
+	{
+		pos = {x, y};
+		theta = atan2(currPos.y - pos.y, currPos.x - pos.x);
+	}
+};
+
+
 class ClubBronco : public olc::PixelGameEngine
 {
 public:
@@ -12,17 +40,15 @@ public:
 	}
 
 private:
-	olc::vf2d playerPos; // The player's designated position
-	olc::vf2d currPlayerPos; // The current position of the player
-	float playerTheta; // Angle in radians from horizontal axis of line from current positon to designated position
+	Character player;
 	float walkSpeed; // The walk speed of the player in pixels per second
 public:
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
-		playerPos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
-		currPlayerPos = playerPos;
-		playerTheta = 0;
+		player.pos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
+		player.currPos = player.pos;
+		float playerTheta = 0;
 		walkSpeed = 100;
 		return true;
 	}
@@ -31,20 +57,17 @@ public:
 	{
 		// Called once per frame
 		if (GetMouse(0).bPressed) // Move player on mouse click
-		{
-			playerPos = { float(GetMouseX()), float(GetMouseY()) };
-			// Redefine theta
-			playerTheta = atan2(currPlayerPos.y - playerPos.y, currPlayerPos.x - playerPos.x);
-		}
+			player.move(GetMouseX(), GetMouseY());
 		// Gradually move the player towards the designated position
-		if (sqrt(pow(currPlayerPos.x - playerPos.x, 2) + pow(currPlayerPos.y - playerPos.y, 2)) > walkSpeed * fElapsedTime)
+		if (sqrt(pow(player.currPos.x - player.pos.x, 2) + pow(player.currPos.y - player.pos.y, 2)) > walkSpeed * fElapsedTime)
 		{
-			currPlayerPos.x -= walkSpeed * cos(playerTheta) * fElapsedTime;
-			currPlayerPos.y -= walkSpeed * sin(playerTheta) * fElapsedTime;
+			// Because of the way the coordinate system works in the window, we have to subtract instead of add
+			player.currPos.x -= walkSpeed * cos(player.theta) * fElapsedTime;
+			player.currPos.y -= walkSpeed * sin(player.theta) * fElapsedTime;
 		}
 		// TODO: Do the same for other players in the game
 		Clear(olc::BLACK); // Erase the previous frame
-		FillCircle(currPlayerPos, 5, olc::WHITE); // Draw the player
+		FillCircle(player.currPos, 5, olc::WHITE); // Draw the player
 		
 		return true;
 	}
