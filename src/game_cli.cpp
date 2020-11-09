@@ -1,6 +1,7 @@
 #define OLC_IMAGE_STB
 #define OLC_PGE_APPLICATION
 #include <cmath>
+#include <vector>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 
 struct Character
@@ -40,7 +41,8 @@ public:
 	}
 
 private:
-	Character player;
+	Character player; // The player character
+	std::vector<Character> others; // List of other players
 	float walkSpeed; // The walk speed of the player in pixels per second
 public:
 	bool OnUserCreate() override
@@ -65,10 +67,18 @@ public:
 			player.currPos.x -= walkSpeed * cos(player.theta) * fElapsedTime;
 			player.currPos.y -= walkSpeed * sin(player.theta) * fElapsedTime;
 		}
-		// TODO: Do the same for other players in the game
+		for (auto c : others) // Move the other players
+		{
+			if (sqrt(pow(c.currPos.x - c.pos.x, 2) + pow(c.currPos.y - c.pos.y, 2)) > walkSpeed * fElapsedTime)
+			{
+				c.currPos.x -= walkSpeed * cos(c.theta) * fElapsedTime;
+				c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
+			}
+		}
 		Clear(olc::BLACK); // Erase the previous frame
 		FillCircle(player.currPos, 5, olc::WHITE); // Draw the player
-		
+		for (auto c : others) // Draw the other players
+			FillCircle(c.currPos, 5, olc::RED);
 		return true;
 	}
 };
