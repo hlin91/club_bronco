@@ -2,6 +2,8 @@
 #define OLC_PGE_APPLICATION
 #include <cmath>
 #include <vector>
+#include <deque>
+#include <string>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 
 struct Character
@@ -43,7 +45,6 @@ public:
 
 private:
 	Character player; // The player character
-	std::vector<Character> others; // List of other players
 	float walkSpeed; // The walk speed of the player in pixels per second
 	std::unique_ptr<olc::Sprite> pAvatar; // The avatar of the player character
 	std::unique_ptr<olc::Decal> dpAvatar; // Decal version of player avatar
@@ -60,7 +61,18 @@ private:
 	olc::vf2d mBoxPos; // Position of message box
 	olc::vf2d inputBoxPos; // Position of input box
 	float arrowSpace; // Space between bottom of arrow and top of player avatar
+	olc::vf2d inputPos; // Position of input text
+	olc::vf2d messagePos; // Position of message text
+	static const int MAX_MESSAGES = 21; // Max number of displayed messages
+	static const int MAX_INPUT_LENGTH = 40; // Max length of input string
+	// For testing
+	unsigned long long itr = 0;
 public:
+	// These variables will need to be updated by concurrent threads
+	std::vector<Character> others; // List of other players
+	std::deque<std::string> messages; // List of messages. Should limit to around 20
+	std::string input; // The input string. Should limit to around 40 characters
+
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
@@ -83,6 +95,12 @@ public:
 		arrowSpace = 5;
 		mBoxPos = {20.0, float(ScreenHeight() - 290.0)};
 		inputBoxPos = {20.0, float(ScreenHeight() - 50.0)};
+		inputPos = {inputBoxPos.x + 10, float(inputBoxPos.y + inputBox->height / 2.0 - 3)};
+		messagePos = {mBoxPos.x + 10, mBoxPos.y + 10};
+		// For testing
+		input = "Test String";
+		for (unsigned int i = 0; i < MAX_MESSAGES; ++i)
+			messages.push_back("Test message");
 		return true;
 	}
 
@@ -114,6 +132,17 @@ public:
 		DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
 		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
 		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
+		DrawStringDecal(inputPos, input, olc::WHITE); // Draw the input line
+		// For testing
+		++itr;
+		messages.pop_front();
+		messages.push_back(std::to_string(itr));
+		// Draw messages
+		for (unsigned int i = 0; i < messages.size(); ++i)
+		{
+			olc::vf2d drawPos = {messagePos.x, messagePos.y + i * 10};
+			DrawStringDecal(drawPos, messages[i], olc::WHITE);
+		}
 		return true;
 	}
 };
