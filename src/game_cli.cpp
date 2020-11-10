@@ -9,6 +9,7 @@ struct Character
 	olc::vf2d pos; // The character's designated position
 	olc::vf2d currPos; // The character's current position
 	float theta; // Angle in radians from horizontal axis of line from current position to designated position
+	olc::vf2d arrowPos; // Position of arrow above the character
 
 	Character()
 	{
@@ -48,7 +49,17 @@ private:
 	std::unique_ptr<olc::Decal> dpAvatar; // Decal version of player avatar
 	std::unique_ptr<olc::Sprite> bg; // The background image
 	std::unique_ptr<olc::Decal> dbg; // Decal version of background image
+	std::unique_ptr<olc::Sprite> arrow; // Arrow above the player
+	std::unique_ptr<olc::Decal> darrow;
+	std::unique_ptr<olc::Sprite> mbox; // Message box
+	std::unique_ptr<olc::Decal> dmbox;
+	std::unique_ptr<olc::Sprite> inputBox; // Input box
+	std::unique_ptr<olc::Decal> dinputBox;
 	olc::vf2d origin; // The 0,0 position
+	olc::vf2d arrowPos; // Position of arrow above player character
+	olc::vf2d mBoxPos; // Position of message box
+	olc::vf2d inputBoxPos; // Position of input box
+	float arrowSpace; // Space between bottom of arrow and top of player avatar
 public:
 	bool OnUserCreate() override
 	{
@@ -62,6 +73,16 @@ public:
 		dpAvatar = std::make_unique<olc::Decal>(pAvatar.get());
 		bg = std::make_unique<olc::Sprite>("./imgs/bg.png");
 		dbg = std::make_unique<olc::Decal>(bg.get());
+		arrow = std::make_unique<olc::Sprite>("./imgs/arrow.png");
+		darrow = std::make_unique<olc::Decal>(arrow.get());
+		mbox = std::make_unique<olc::Sprite>("./imgs/message_box.png");
+		dmbox = std::make_unique<olc::Decal>(mbox.get());
+		inputBox = std::make_unique<olc::Sprite>("./imgs/input_box.png");
+		dinputBox = std::make_unique<olc::Decal>(inputBox.get());
+		arrowPos = {0, 0};
+		arrowSpace = 5;
+		mBoxPos = {20.0, float(ScreenHeight() - 290.0)};
+		inputBoxPos = {20.0, float(ScreenHeight() - 50.0)};
 		return true;
 	}
 
@@ -85,10 +106,14 @@ public:
 				c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
 			}
 		}
+		arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
 		DrawDecal(origin, dbg.get()); // Draw the background
-		DrawDecal(player.currPos, dpAvatar.get()); // Draw the player
 		for (auto c : others) // Draw the other players
 			DrawDecal(c.currPos, dpAvatar.get());
+		DrawDecal(player.currPos, dpAvatar.get()); // Draw the player
+		DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
+		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
+		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
 		return true;
 	}
 };
