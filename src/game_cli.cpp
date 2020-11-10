@@ -47,7 +47,9 @@ private:
 	Character player; // The player character
 	float walkSpeed; // The walk speed of the player in pixels per second
 	std::unique_ptr<olc::Sprite> pAvatar; // The avatar of the player character
+	std::unique_ptr<olc::Sprite> pAvatarFlip; // The flipped avatar of the player character
 	std::unique_ptr<olc::Decal> dpAvatar; // Decal version of player avatar
+	std::unique_ptr<olc::Decal> dpAvatarFlip; // Flipped decal of player avatar
 	std::unique_ptr<olc::Sprite> bg; // The background image
 	std::unique_ptr<olc::Decal> dbg; // Decal version of background image
 	std::unique_ptr<olc::Sprite> arrow; // Arrow above the player
@@ -82,7 +84,9 @@ public:
 		float playerTheta = 0;
 		walkSpeed = 100;
 		pAvatar = std::make_unique<olc::Sprite>("./imgs/player.png");
+		pAvatarFlip = std::make_unique<olc::Sprite>("./imgs/player_flip.png");
 		dpAvatar = std::make_unique<olc::Decal>(pAvatar.get());
+		dpAvatarFlip = std::make_unique<olc::Decal>(pAvatarFlip.get());
 		bg = std::make_unique<olc::Sprite>("./imgs/bg.png");
 		dbg = std::make_unique<olc::Decal>(bg.get());
 		arrow = std::make_unique<olc::Sprite>("./imgs/arrow.png");
@@ -96,11 +100,13 @@ public:
 		mBoxPos = {20.0, float(ScreenHeight() - 290.0)};
 		inputBoxPos = {20.0, float(ScreenHeight() - 50.0)};
 		inputPos = {inputBoxPos.x + 10, float(inputBoxPos.y + inputBox->height / 2.0 - 3)};
-		messagePos = {mBoxPos.x + 10, mBoxPos.y + 10};
+		messagePos = {mBoxPos.x + 10, mBoxPos.y + 12};
+		DrawSprite(origin, bg.get());
 		// For testing
 		input = "Test String";
 		for (unsigned int i = 0; i < MAX_MESSAGES; ++i)
 			messages.push_back("Test message");
+		others.push_back(player);
 		return true;
 	}
 
@@ -125,10 +131,13 @@ public:
 			}
 		}
 		arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
-		DrawDecal(origin, dbg.get()); // Draw the background
 		for (auto c : others) // Draw the other players
 			DrawDecal(c.currPos, dpAvatar.get());
-		DrawDecal(player.currPos, dpAvatar.get()); // Draw the player
+		// Draw the player
+		if (-(walkSpeed * cos(player.theta)) < 0) // Determine if we need to flip the player
+			DrawDecal(player.currPos, dpAvatarFlip.get());
+		else
+			DrawDecal(player.currPos, dpAvatar.get());
 		DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
 		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
 		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
