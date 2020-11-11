@@ -14,7 +14,7 @@ struct Character
 	olc::vf2d arrowPos; // Position of arrow above the character
     std::string name; // Player name
     bool dancing; // Dancing flag
-    float danceAngle; // Current angle of rotation in the dance
+    double danceAngle; // Current angle of rotation in the dance
 
 	Character()
 	{
@@ -26,7 +26,7 @@ struct Character
         danceAngle = 0;
 	}
 
-	Character(olc::vf2d &p, olc::vf2d &cp, float t, std::string &n, bool d, float da)
+	Character(olc::vf2d &p, olc::vf2d &cp, float t, std::string &n, bool d, double da)
 	{
 		pos = p;
 		currPos = cp;
@@ -155,7 +155,7 @@ public:
                 c.danceAngle = 0;
 		}
 		arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
-        
+
 		for (auto c : others) // Draw the other players
         {
             if (-(walkSpeed * cos(c.theta)) < 0) // Determine if we need to flip the player
