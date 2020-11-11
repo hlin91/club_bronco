@@ -12,19 +12,28 @@ struct Character
 	olc::vf2d currPos; // The character's current position
 	float theta; // Angle in radians from horizontal axis of line from current position to designated position
 	olc::vf2d arrowPos; // Position of arrow above the character
+    std::string name; // Player name
+    bool dancing; // Dancing flag
+    float danceAngle; // Current angle of rotation in the dance
 
 	Character()
 	{
 		pos = {0, 0};
 		currPos = {0, 0};
 		theta = 0;
+        name = "Player";
+        dancing = false;
+        danceAngle = 0;
 	}
 
-	Character(olc::vf2d &p, olc::vf2d &cp, float t)
+	Character(olc::vf2d &p, olc::vf2d &cp, float t, std::string &n, bool d, float da)
 	{
 		pos = p;
 		currPos = cp;
 		theta = t;
+        name = n;
+        dancing = d;
+        danceAngle = da;
 	}
 
 	void move(float x, float y) // Move the character to specified position and update theta
@@ -46,6 +55,7 @@ public:
 private:
 	Character player; // The player character
 	float walkSpeed; // The walk speed of the player in pixels per second
+    float danceSpeed; // The speed at which the player dances in radians per second
 	std::unique_ptr<olc::Sprite> pAvatar; // The avatar of the player character
 	std::unique_ptr<olc::Sprite> pAvatarFlip; // The flipped avatar of the player character
 	std::unique_ptr<olc::Decal> dpAvatar; // Decal version of player avatar
@@ -58,6 +68,7 @@ private:
 	std::unique_ptr<olc::Decal> dmbox;
 	std::unique_ptr<olc::Sprite> inputBox; // Input box
 	std::unique_ptr<olc::Decal> dinputBox;
+    olc::vf2d playerCenter; // Center of player sprite
 	olc::vf2d origin; // The 0,0 position
 	olc::vf2d arrowPos; // Position of arrow above player character
 	olc::vf2d mBoxPos; // Position of message box
@@ -70,7 +81,7 @@ private:
 	// For testing
 	unsigned long long itr = 0;
 public:
-	// These variables will need to be updated by concurrent threads
+	// These variables will need to be updated by slave threads
 	std::vector<Character> others; // List of other players
 	std::deque<std::string> messages; // List of messages. Should limit to around 20
 	std::string input; // The input string. Should limit to around 40 characters
@@ -83,8 +94,10 @@ public:
 		player.currPos = player.pos;
 		float playerTheta = 0;
 		walkSpeed = 100;
+        danceSpeed = 1;
 		pAvatar = std::make_unique<olc::Sprite>("./imgs/player.png");
 		pAvatarFlip = std::make_unique<olc::Sprite>("./imgs/player_flip.png");
+        playerCenter = {float(pAvatar->width / 2.0), float(pAvatar->height / 2.0)};
 		dpAvatar = std::make_unique<olc::Decal>(pAvatar.get());
 		dpAvatarFlip = std::make_unique<olc::Decal>(pAvatarFlip.get());
 		bg = std::make_unique<olc::Sprite>("./imgs/bg.png");
@@ -122,22 +135,59 @@ public:
 			player.currPos.x -= walkSpeed * cos(player.theta) * fElapsedTime;
 			player.currPos.y -= walkSpeed * sin(player.theta) * fElapsedTime;
 		}
-		for (auto c : others) // Move the other players
+        // Handle dancing
+        if (GetKey(olc::Key::DOWN).bPressed) // Toggle dancing for player
+            player.dancing = !(player.dancing);
+        if (player.dancing)
+            player.danceAngle += danceSpeed * fElapsedTime;
+        else
+            player.danceAngle = 0;
+		for (auto c : others) // Move and dance the other players
 		{
 			if (sqrt(pow(c.currPos.x - c.pos.x, 2) + pow(c.currPos.y - c.pos.y, 2)) > walkSpeed * fElapsedTime)
 			{
 				c.currPos.x -= walkSpeed * cos(c.theta) * fElapsedTime;
 				c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
 			}
+            if (c.dancing)
+                c.danceAngle += danceSpeed * fElapsedTime;
+            else
+                c.danceAngle = 0;
 		}
 		arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
+        
 		for (auto c : others) // Draw the other players
-			DrawDecal(c.currPos, dpAvatar.get());
+        {
+            if (-(walkSpeed * cos(c.theta)) < 0) // Determine if we need to flip the player
+            {
+                if (c.dancing) // Draw dancing player
+                    DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
+                else
+                    DrawDecal(c.currPos, dpAvatarFlip.get());
+            }
+            else
+            {
+                if (c.dancing)
+                    DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatar.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
+                else
+                    DrawDecal(c.currPos, dpAvatar.get());
+            }
+        }
 		// Draw the player
 		if (-(walkSpeed * cos(player.theta)) < 0) // Determine if we need to flip the player
-			DrawDecal(player.currPos, dpAvatarFlip.get());
+        {
+            if (player.dancing) // Draw dancing player
+                DrawRotatedDecal(olc::vf2d(player.currPos.x + playerCenter.x, player.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(player.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(player.danceAngle * 2) / 3 + 1, sin(player.danceAngle * 2) / 3 + 1));
+            else
+                DrawDecal(player.currPos, dpAvatarFlip.get());
+        }
 		else
-			DrawDecal(player.currPos, dpAvatar.get());
+        {
+            if (player.dancing)
+                DrawRotatedDecal(olc::vf2d(player.currPos.x + playerCenter.x, player.currPos.y + playerCenter.y), dpAvatar.get(), sin(player.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(player.danceAngle * 2) / 3 + 1, sin(player.danceAngle * 2) / 3 + 1));
+            else
+                DrawDecal(player.currPos, dpAvatar.get());
+        }
 		DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
 		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
 		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
