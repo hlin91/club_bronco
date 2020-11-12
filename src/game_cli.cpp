@@ -79,10 +79,74 @@ private:
 	olc::vf2d inputPos; // Position of input text
 	olc::vf2d messagePos; // Position of message text
 	olc::vf2d namePos; // Position of player names in name box
+	bool isInputing; // Flag for listening for keyboard input to build input string
 	static const int MAX_MESSAGES = 21; // Max number of displayed messages
 	static const int MAX_INPUT_LENGTH = 40; // Max length of input string
+	static const int MBOX_CHAR_WIDTH = 45; // Approximate width of message box in characters
+	float processDelay; // For limiting processing of held key
 	// For testing
 	unsigned long long itr = 0;
+
+	char processAlnum() // Process an textual keystroke as character input
+	{
+		char c = 0;
+		if (GetKey(olc::Key::SPACE).bPressed) // Handle space
+			return ' ';
+		if (GetKey(olc::Key::BACK).bPressed) // Handle backspace
+			return 8;
+		for (unsigned long long i = olc::Key::A; i <= olc::Key::K9; ++i)
+		{
+			if (GetKey(olc::Key(i)).bPressed)
+			{
+				if (i >= olc::Key::K0) // Numeric key pressed
+					c = '0' + i - olc::Key::K0;
+				else // Alphabetical key pressed
+				{
+					c = 'a' + i - olc::Key::A;
+					if (GetKey(olc::Key::SHIFT).bHeld)
+						c -= 32; // Convert to upper case
+				}
+			}
+		}
+		return c;
+	}
+
+	char processHeld(float elapsedTime) // Process textual keystroke that has been held
+	{
+		char c = 0;
+		processDelay += elapsedTime;
+		if (processDelay > 0.1)
+		{
+			processDelay -= 0.1;
+			if (GetKey(olc::Key::SPACE).bHeld) // Handle space
+			return ' ';
+			if (GetKey(olc::Key::BACK).bHeld) // Handle backspace
+				return 8;
+			for (unsigned long long i = olc::Key::A; i <= olc::Key::K9; ++i)
+			{
+				if (GetKey(olc::Key(i)).bHeld)
+				{
+					if (i >= olc::Key::K0) // Numeric key pressed
+						c = '0' + i - olc::Key::K0;
+					else // Alphabetical key pressed
+					{
+						c = 'a' + i - olc::Key::A;
+						if (GetKey(olc::Key::SHIFT).bHeld)
+							c -= 32; // Convert to upper case
+					}
+				}
+			}
+		}
+		return c;
+	}
+
+	void addMessage(std::string m) // Add message to message box
+	{
+		if (messages.size() == MAX_MESSAGES)
+			messages.pop_front();
+		messages.push_back(m);
+	}
+
 public:
 	// These variables will need to be updated by slave threads
 	std::vector<Character> others; // List of other players
@@ -98,6 +162,8 @@ public:
 		float playerTheta = 0;
 		walkSpeed = 100;
         danceSpeed = 1;
+		isInputing = false;
+		processDelay = 0;
 		pAvatar = std::make_unique<olc::Sprite>("./imgs/player.png");
 		pAvatarFlip = std::make_unique<olc::Sprite>("./imgs/player_flip.png");
         playerCenter = {float(pAvatar->width / 2.0), float(pAvatar->height / 2.0)};
@@ -123,7 +189,7 @@ public:
 		namePos = {nameBoxPos.x + 12, nameBoxPos.y + 12};
 		DrawSprite(origin, bg.get());
 		// For testing
-		input = "Test String";
+		input = "";
 		for (unsigned int i = 0; i < MAX_MESSAGES; ++i)
 			messages.push_back("Test message");
 		for (unsigned int i = 1; i <= 30; ++i)
@@ -138,6 +204,52 @@ public:
 		// Called once per frame
 		if (GetKey(olc::Key::ESCAPE).bPressed) // Quit with escape
 			return false;
+		if (GetKey(olc::Key::ENTER).bPressed) // Enter toggles input state
+		{
+			if (isInputing) // Done with current input string
+			{
+				if (input.size())
+				{
+					std::string m = player.name + ": " + input;
+					addMessage(m.substr(0, 45));
+					if (m.size() > MBOX_CHAR_WIDTH) // If the player name plus the message exceeds message box width
+						addMessage("    " + m.substr(45)); // Print the rest on a indented new line
+					// TODO: Send the input string to the server
+				}
+				input.clear();
+			}
+			isInputing = !(isInputing);
+		}
+		if (isInputing) // Listen for alphanumeric key presses
+		{
+			// Handle pressing of new key
+			char c = processAlnum();
+			if (c == 8) // Backspace
+			{
+				if (input.size())
+					input.pop_back();
+				processDelay = -.5; // Delay the handling of held keys by .5s
+			}	
+			else if (c)
+			{
+				if (input.size() < MAX_INPUT_LENGTH)
+				input.push_back(c);
+				processDelay = -.5;
+			}
+			else
+			{
+				// Handle holding down of key
+				c = processHeld(fElapsedTime);
+				if (c == 8) // Backspace
+				{
+					if (input.size())
+						input.pop_back();
+				}	
+				else if (c)
+					if (input.size() < MAX_INPUT_LENGTH)
+						input.push_back(c);
+			}
+		}
 		if (GetMouse(0).bPressed) // Move player on mouse click
 			player.move(GetMouseX() - (pAvatar->width / 2.0), GetMouseY() - (pAvatar->height / 2.0));
 		// Gradually move the player towards the designated position
@@ -203,9 +315,13 @@ public:
 		DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
 		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
 		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
-		DrawStringDecal(inputPos, input, olc::WHITE); // Draw the input line
 		DrawDecal(nameBoxPos, dnameBox.get()); // Draw the name box
 		DrawStringDecal(namePos, player.name.substr(0, 12), olc::WHITE); // Draw the first 12 characters of player name in the name box
+ 		// Draw the input line
+		 if (isInputing)
+			DrawStringDecal(inputPos, input + '_', olc::WHITE);
+		else
+			DrawStringDecal(inputPos, input, olc::WHITE);
 		// Draw messages
 		for (unsigned int i = 0; i < messages.size(); ++i)
 		{
@@ -226,10 +342,6 @@ public:
 			olc::vf2d drawPos = {namePos.x, namePos.y + 30 * 12};
 			DrawStringDecal(drawPos, "...", olc::WHITE);
 		}
-		// For testing
-		++itr;
-		messages.pop_front();
-		messages.push_back(std::to_string(itr));
 		
 		return true;
 	}
