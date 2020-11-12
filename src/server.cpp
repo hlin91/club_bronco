@@ -6,8 +6,14 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <pthread.h>
+#include <list>
+#include <iterator>
+
+#define SA struct sockaddr
 
 using namespace std;
+
+    static list<int> clients;
 
 int check_if_error(int returned_value, char *error_msg)
 {
@@ -36,6 +42,12 @@ int create_server_socket(int port) {
     //Check for error with socket
     check_if_error(sock, "Error with socket");
 
+    // Binding newly created socket to given IP and verification 
+    if ((bind(sock, (SA*)&server_address, sizeof(server_address))) != 0) { 
+        printf("socket bind failed...\n"); 
+        exit(0); 
+    } 
+
     check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)), "setsockopt");
 
     // Attempt to make the socket (fd) a listening type socket
@@ -49,16 +61,30 @@ int create_server_socket(int port) {
 void* handle_client(void* client_ptr) {
     pthread_detach(pthread_self());
 
+    cout << "Handling client" << endl;
+
     int client = *((int*) client_ptr);
 
-
     //Request from the client
-    char request[BUFSIZ + 1];
-    bzero(request, sizeof(request));
-    int bytes_read = recv(client, request, sizeof(request), 0);
-    check_if_error(bytes_read, "Error reading from client");
+    while (1) {
+        char request[BUFSIZ + 1];
+        bzero(request, sizeof(request));
+        int bytes_read = recv(client, request, sizeof(request), 0);
+        check_if_error(bytes_read, "Error reading from client");
 
-    cout << request << endl;
+        cout << request << endl;
+        
+        char response[BUFSIZ +1];
+        bzero(response,sizeof(response));
+        int bytes_written = 0;
+        //TODO: craft a response based on the request
+        //Write the response to all the clients
+        for (const auto& c : clients)
+        {
+            //NOTE: Eventually this will be response, not request
+            bytes_written = write( c, request, sizeof(request) );
+        }
+    }
     close(client);
     return 0;
 }
@@ -70,6 +96,8 @@ int main() {
 
     while (true) {
         int client = accept(socket, (struct sockaddr *)NULL, NULL);
+        cout << "Connected to client!" << endl;
+        clients.push_back(client);
 
         pthread_t tid;
         int flag = pthread_create(&tid, NULL, handle_client, &client);
