@@ -219,8 +219,8 @@ public:
 		arrowSpace = 5;
 		mBoxPos = {20.0, float(ScreenHeight() - 290.0)};
 		inputBoxPos = {20.0, float(ScreenHeight() - 50.0)};
-		inputPos = {inputBoxPos.x + 10, float(inputBoxPos.y + inputBox->height / 2.0 - 3)};
-		messagePos = {mBoxPos.x + 10, mBoxPos.y + 12};
+		inputPos = {inputBoxPos.x + 12, float(inputBoxPos.y + inputBox->height / 2.0 - 3)};
+		messagePos = {mBoxPos.x + 12, mBoxPos.y + 12};
 		nameBoxPos = {20.0, mBoxPos.y - 24 - nameBox->height};
 		namePos = {nameBoxPos.x + 12, nameBoxPos.y + 12};
 		DrawSprite(origin, bg.get());
