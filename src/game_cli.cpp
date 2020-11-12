@@ -147,7 +147,7 @@ private:
 		return c;
 	}
 
-	void addMessage(std::string m) // Add message to message box
+	void addMessage(std::string &m) // Add message to message box
 	{
 		if (messages.size() == MAX_MESSAGES)
 			messages.pop_front();
@@ -175,6 +175,19 @@ private:
 			olc::vf2d drawPos = {float(c.currPos.x + pAvatar->width / 2.0 - chatBubble[0]->width / 2.0), float(c.currPos.y - chatBubble[0]->height - arrowSpace)};
 			DrawDecal(drawPos, dchatBubble[int(globalTimer / 0.5) % 3].get()); // Determine the frame of the animation based on elapsed time
 		}
+	}
+
+	void moveCharacter(Character &c, float fElapsedTime) // Update the position and dance angle of the character
+	{
+		if (sqrt(pow(c.currPos.x - c.pos.x, 2) + pow(c.currPos.y - c.pos.y, 2)) > walkSpeed * fElapsedTime)
+		{
+			c.currPos.x -= walkSpeed * cos(c.theta) * fElapsedTime;
+			c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
+		}
+		if (c.dancing)
+			c.danceAngle += danceSpeed * fElapsedTime;
+		else
+			c.danceAngle = 0;
 	}
 
 public:
@@ -289,32 +302,12 @@ public:
 		}
 		if (GetMouse(0).bPressed) // Move player on mouse click
 			player.move(GetMouseX() - (pAvatar->width / 2.0), GetMouseY() - (pAvatar->height / 2.0));
-		// Gradually move the player towards the designated position
-		if (sqrt(pow(player.currPos.x - player.pos.x, 2) + pow(player.currPos.y - player.pos.y, 2)) > walkSpeed * fElapsedTime)
-		{
-			// Because of the way the coordinate system works in the window, we have to subtract instead of add
-			player.currPos.x -= walkSpeed * cos(player.theta) * fElapsedTime;
-			player.currPos.y -= walkSpeed * sin(player.theta) * fElapsedTime;
-		}
-        // Handle dancing
-        if (GetKey(olc::Key::DOWN).bPressed) // Toggle dancing for player
+		if (GetKey(olc::Key::DOWN).bPressed) // Toggle dancing for player
             player.dancing = !(player.dancing);
-        if (player.dancing)
-            player.danceAngle += danceSpeed * fElapsedTime;
-        else
-            player.danceAngle = 0;
+		// Gradually move the player towards the designated position
+		moveCharacter(player, fElapsedTime);
 		for (auto c : others) // Move and dance the other players
-		{
-			if (sqrt(pow(c.currPos.x - c.pos.x, 2) + pow(c.currPos.y - c.pos.y, 2)) > walkSpeed * fElapsedTime)
-			{
-				c.currPos.x -= walkSpeed * cos(c.theta) * fElapsedTime;
-				c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
-			}
-            if (c.dancing)
-                c.danceAngle += danceSpeed * fElapsedTime;
-            else
-                c.danceAngle = 0;
-		}
+			moveCharacter(c, fElapsedTime);
 		arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
 
 		for (auto c : others) // Draw the other players
