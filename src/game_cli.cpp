@@ -8,6 +8,7 @@
 
 struct Character
 {
+	static const int MAX_NAME_LENGTH = 20;
 	olc::vf2d pos; // The character's designated position
 	olc::vf2d currPos; // The character's current position
 	float theta; // Angle in radians from horizontal axis of line from current position to designated position
@@ -30,7 +31,7 @@ struct Character
 		pos = p;
 		currPos = cp;
 		theta = t;
-        name = n;
+        name = n.substr(0, MAX_NAME_LENGTH);
         dancing = d;
         danceAngle = da;
 	}
