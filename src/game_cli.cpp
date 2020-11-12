@@ -15,6 +15,7 @@ struct Character
     std::string name; // Player name
     bool dancing; // Dancing flag
     double danceAngle; // Current angle of rotation in the dance
+	bool inputing; // Is the player currently inputing
 
 	Character()
 	{
@@ -24,16 +25,18 @@ struct Character
         name = "Player";
         dancing = false;
         danceAngle = 0;
+		inputing = false;
 	}
 
-	Character(olc::vf2d &p, olc::vf2d &cp, float t, std::string &n, bool d, double da)
+	Character(olc::vf2d &p, olc::vf2d &cp, std::string &n)
 	{
 		pos = p;
 		currPos = cp;
-		theta = t;
+		theta = 0;
         name = n.substr(0, MAX_NAME_LENGTH);
-        dancing = d;
-        danceAngle = da;
+        dancing = false;
+        danceAngle = 0;
+		inputing = false;
 	}
 
 	void move(float x, float y) // Move the character to specified position and update theta
@@ -80,7 +83,6 @@ private:
 	olc::vf2d inputPos; // Position of input text
 	olc::vf2d messagePos; // Position of message text
 	olc::vf2d namePos; // Position of player names in name box
-	bool isInputing; // Flag for listening for keyboard input to build input string
 	static const int MAX_MESSAGES = 21; // Max number of displayed messages
 	static const int MAX_INPUT_LENGTH = 40; // Max length of input string
 	static const int MBOX_CHAR_WIDTH = 45; // Approximate width of message box in characters
@@ -181,7 +183,6 @@ public:
 		float playerTheta = 0;
 		walkSpeed = 100;
         danceSpeed = 1;
-		isInputing = false;
 		processDelay = 0;
 		pAvatar = std::make_unique<olc::Sprite>("./imgs/player.png");
 		pAvatarFlip = std::make_unique<olc::Sprite>("./imgs/player_flip.png");
@@ -225,7 +226,7 @@ public:
 			return false;
 		if (GetKey(olc::Key::ENTER).bPressed) // Enter toggles input state
 		{
-			if (isInputing) // Done with current input string
+			if (player.inputing) // Done with current input string
 			{
 				if (input.size())
 				{
@@ -237,9 +238,9 @@ public:
 				}
 				input.clear();
 			}
-			isInputing = !(isInputing);
+			player.inputing = !(player.inputing);
 		}
-		if (isInputing) // Listen for alphanumeric key presses
+		if (player.inputing) // Listen for alphanumeric key presses
 		{
 			// Handle pressing of new key
 			char c = processAlnum();
@@ -308,7 +309,7 @@ public:
 		DrawDecal(nameBoxPos, dnameBox.get()); // Draw the name box
 		DrawStringDecal(namePos, player.name.substr(0, 12), olc::WHITE); // Draw the first 12 characters of player name in the name box
  		// Draw the input line
-		 if (isInputing)
+		 if (player.inputing)
 			DrawStringDecal(inputPos, input + '_', olc::WHITE);
 		else
 			DrawStringDecal(inputPos, input, olc::WHITE);
