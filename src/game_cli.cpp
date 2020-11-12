@@ -112,10 +112,10 @@ private:
 		return c;
 	}
 
-	char processHeld(float elapsedTime) // Process textual keystroke that has been held
+	char processHeld(float fElapsedTime) // Process textual keystroke that has been held
 	{
 		char c = 0;
-		processDelay += elapsedTime;
+		processDelay += fElapsedTime;
 		if (processDelay > 0.1)
 		{
 			processDelay -= 0.1;
@@ -146,6 +146,24 @@ private:
 		if (messages.size() == MAX_MESSAGES)
 			messages.pop_front();
 		messages.push_back(m);
+	}
+
+	void drawCharacter(Character &c) // Draw the character on screen
+	{
+		if (-(walkSpeed * cos(c.theta)) < 0) // Determine if we need to flip the player
+		{
+			if (c.dancing) // Draw dancing player
+				DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
+			else
+				DrawDecal(c.currPos, dpAvatarFlip.get());
+		}
+		else
+		{
+			if (c.dancing)
+				DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatar.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
+			else
+				DrawDecal(c.currPos, dpAvatar.get());
+		}
 	}
 
 public:
@@ -282,37 +300,8 @@ public:
 		arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
 
 		for (auto c : others) // Draw the other players
-        {
-            if (-(walkSpeed * cos(c.theta)) < 0) // Determine if we need to flip the player
-            {
-                if (c.dancing) // Draw dancing player
-                    DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
-                else
-                    DrawDecal(c.currPos, dpAvatarFlip.get());
-            }
-            else
-            {
-                if (c.dancing)
-                    DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatar.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
-                else
-                    DrawDecal(c.currPos, dpAvatar.get());
-            }
-        }
-		// Draw the player
-		if (-(walkSpeed * cos(player.theta)) < 0) // Determine if we need to flip the player
-        {
-            if (player.dancing) // Draw dancing player
-                DrawRotatedDecal(olc::vf2d(player.currPos.x + playerCenter.x, player.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(player.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(player.danceAngle * 2) / 3 + 1, sin(player.danceAngle * 2) / 3 + 1));
-            else
-                DrawDecal(player.currPos, dpAvatarFlip.get());
-        }
-		else
-        {
-            if (player.dancing)
-                DrawRotatedDecal(olc::vf2d(player.currPos.x + playerCenter.x, player.currPos.y + playerCenter.y), dpAvatar.get(), sin(player.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(player.danceAngle * 2) / 3 + 1, sin(player.danceAngle * 2) / 3 + 1));
-            else
-                DrawDecal(player.currPos, dpAvatar.get());
-        }
+            drawCharacter(c);
+		drawCharacter(player); // Draw the player
 		DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
 		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
 		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
