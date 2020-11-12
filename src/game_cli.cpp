@@ -1,5 +1,6 @@
 #define OLC_IMAGE_STB
 #define OLC_PGE_APPLICATION
+
 #include <cmath>
 #include <vector>
 #include <deque>
@@ -193,7 +194,7 @@ private:
 public:
 	// These variables will need to be updated by slave threads
 	std::vector<Character> others; // List of other players
-	std::deque<std::string> messages; // List of messages. Should limit to around 20
+	std::deque<std::string> messages; // List of messages
 
 	bool OnUserCreate() override
 	{
@@ -253,7 +254,10 @@ public:
 		// Called once per frame
 		globalTimer += fElapsedTime;
 		if (GetKey(olc::Key::ESCAPE).bPressed) // Quit with escape
+		{
+			// TODO: Tell server that player is leaving
 			return false;
+		}
 		if (GetKey(olc::Key::ENTER).bPressed) // Enter toggles input state
 		{
 			if (player.inputing) // Done with current input string
@@ -269,6 +273,7 @@ public:
 				input.clear();
 			}
 			player.inputing = !(player.inputing);
+			// TODO: Send server updated input state
 		}
 		if (player.inputing) // Listen for alphanumeric key presses
 		{
@@ -301,9 +306,15 @@ public:
 			}
 		}
 		if (GetMouse(0).bPressed) // Move player on mouse click
+		{
 			player.move(GetMouseX() - (pAvatar->width / 2.0), GetMouseY() - (pAvatar->height / 2.0));
+			// TODO: Send server updated position
+		}
 		if (GetKey(olc::Key::DOWN).bPressed) // Toggle dancing for player
-            player.dancing = !(player.dancing);
+		{
+			player.dancing = !(player.dancing);
+			// TODO: Send server updated dancing state
+		}
 		// Gradually move the player towards the designated position
 		moveCharacter(player, fElapsedTime);
 		for (auto c : others) // Move and dance the other players
