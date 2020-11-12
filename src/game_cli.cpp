@@ -68,14 +68,18 @@ private:
 	std::unique_ptr<olc::Decal> dmbox;
 	std::unique_ptr<olc::Sprite> inputBox; // Input box
 	std::unique_ptr<olc::Decal> dinputBox;
+	std::unique_ptr<olc::Sprite> nameBox; // Name box
+	std::unique_ptr<olc::Decal> dnameBox;
     olc::vf2d playerCenter; // Center of player sprite
 	olc::vf2d origin; // The 0,0 position
 	olc::vf2d arrowPos; // Position of arrow above player character
+	olc::vf2d nameBoxPos; // Position of name box
 	olc::vf2d mBoxPos; // Position of message box
 	olc::vf2d inputBoxPos; // Position of input box
 	float arrowSpace; // Space between bottom of arrow and top of player avatar
 	olc::vf2d inputPos; // Position of input text
 	olc::vf2d messagePos; // Position of message text
+	olc::vf2d namePos; // Position of player names in name box
 	static const int MAX_MESSAGES = 21; // Max number of displayed messages
 	static const int MAX_INPUT_LENGTH = 40; // Max length of input string
 	// For testing
@@ -108,24 +112,33 @@ public:
 		dmbox = std::make_unique<olc::Decal>(mbox.get());
 		inputBox = std::make_unique<olc::Sprite>("./imgs/input_box.png");
 		dinputBox = std::make_unique<olc::Decal>(inputBox.get());
+		nameBox = std::make_unique<olc::Sprite>("./imgs/name_box.png");
+		dnameBox = std::make_unique<olc::Decal>(nameBox.get());
 		arrowPos = {0, 0};
 		arrowSpace = 5;
 		mBoxPos = {20.0, float(ScreenHeight() - 290.0)};
 		inputBoxPos = {20.0, float(ScreenHeight() - 50.0)};
 		inputPos = {inputBoxPos.x + 10, float(inputBoxPos.y + inputBox->height / 2.0 - 3)};
 		messagePos = {mBoxPos.x + 10, mBoxPos.y + 12};
+		nameBoxPos = {20.0, mBoxPos.y - 24 - nameBox->height};
+		namePos = {nameBoxPos.x + 12, nameBoxPos.y + 12};
 		DrawSprite(origin, bg.get());
 		// For testing
 		input = "Test String";
 		for (unsigned int i = 0; i < MAX_MESSAGES; ++i)
 			messages.push_back("Test message");
-		others.push_back(player);
+		for (unsigned int i = 1; i <= 30; ++i)
+		{
+			others.push_back(player);
+		}
 		return true;
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		// Called once per frame
+		if (GetKey(olc::Key::ESCAPE).bPressed) // Quit with escape
+			return false;
 		if (GetMouse(0).bPressed) // Move player on mouse click
 			player.move(GetMouseX() - (pAvatar->width / 2.0), GetMouseY() - (pAvatar->height / 2.0));
 		// Gradually move the player towards the designated position
@@ -192,16 +205,33 @@ public:
 		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
 		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
 		DrawStringDecal(inputPos, input, olc::WHITE); // Draw the input line
-		// For testing
-		++itr;
-		messages.pop_front();
-		messages.push_back(std::to_string(itr));
+		DrawDecal(nameBoxPos, dnameBox.get()); // Draw the name box
+		DrawStringDecal(namePos, player.name.substr(0, 12), olc::WHITE); // Draw the first 12 characters of player name in the name box
 		// Draw messages
 		for (unsigned int i = 0; i < messages.size(); ++i)
 		{
 			olc::vf2d drawPos = {messagePos.x, messagePos.y + i * 10};
 			DrawStringDecal(drawPos, messages[i], olc::WHITE);
 		}
+		// Draw the other player names
+		for (unsigned int i = 0; i < others.size(); ++i)
+		{ // Should limit the max number of names drawn and the number of characters drawn later
+			if (i > 28) // Only draw up to 29 other player names
+				break;
+			olc::vf2d drawPos = {namePos.x, namePos.y + (i + 1) * 12};
+			DrawStringDecal(drawPos, others[i].name.substr(0, 12), olc::WHITE); // Only draw the first 12 characters of name
+		}
+		if (others.size() > 28) // If there are more than 28 other players in the room
+		{
+			// Indicate that there are undrawn names
+			olc::vf2d drawPos = {namePos.x, namePos.y + 30 * 12};
+			DrawStringDecal(drawPos, "...", olc::WHITE);
+		}
+		// For testing
+		++itr;
+		messages.pop_front();
+		messages.push_back(std::to_string(itr));
+		
 		return true;
 	}
 };
