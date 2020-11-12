@@ -11,7 +11,6 @@ struct Character
 	olc::vf2d pos; // The character's designated position
 	olc::vf2d currPos; // The character's current position
 	float theta; // Angle in radians from horizontal axis of line from current position to designated position
-	olc::vf2d arrowPos; // Position of arrow above the character
     std::string name; // Player name
     bool dancing; // Dancing flag
     double danceAngle; // Current angle of rotation in the dance
