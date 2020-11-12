@@ -57,6 +57,7 @@ public:
 
 private:
 	Character player; // The player character
+	std::string input; // The input string. Should limit to around 40 characters
 	float walkSpeed; // The walk speed of the player in pixels per second
     float danceSpeed; // The speed at which the player dances in radians per second
 	std::unique_ptr<olc::Sprite> pAvatar; // The avatar of the player character
@@ -73,6 +74,8 @@ private:
 	std::unique_ptr<olc::Decal> dinputBox;
 	std::unique_ptr<olc::Sprite> nameBox; // Name box
 	std::unique_ptr<olc::Decal> dnameBox;
+	std::unique_ptr<olc::Sprite> chatBubble[3]; // The chat bubble animation
+	std::unique_ptr<olc::Decal> dchatBubble[3];
     olc::vf2d playerCenter; // Center of player sprite
 	olc::vf2d origin; // The 0,0 position
 	olc::vf2d arrowPos; // Position of arrow above player character
@@ -87,6 +90,7 @@ private:
 	static const int MAX_INPUT_LENGTH = 40; // Max length of input string
 	static const int MBOX_CHAR_WIDTH = 45; // Approximate width of message box in characters
 	float processDelay; // For limiting processing of held key
+	double globalTimer; // Total amount of time passed in seconds
 	// For testing
 	unsigned long long itr = 0;
 
@@ -166,17 +170,22 @@ private:
 			else
 				DrawDecal(c.currPos, dpAvatar.get());
 		}
+		if (c.inputing) // Draw the chat bubble
+		{
+			olc::vf2d drawPos = {float(c.currPos.x + pAvatar->width / 2.0 - chatBubble[0]->width / 2.0), float(c.currPos.y - chatBubble[0]->height - arrowSpace)};
+			DrawDecal(drawPos, dchatBubble[int(globalTimer / 0.5) % 3].get()); // Determine the frame of the animation based on elapsed time
+		}
 	}
 
 public:
 	// These variables will need to be updated by slave threads
 	std::vector<Character> others; // List of other players
 	std::deque<std::string> messages; // List of messages. Should limit to around 20
-	std::string input; // The input string. Should limit to around 40 characters
 
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
+		// TODO: Create slave thread to listen for updates from HTTP server
 		origin = {0, 0};
 		player.pos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
 		player.currPos = player.pos;
@@ -184,6 +193,7 @@ public:
 		walkSpeed = 100;
         danceSpeed = 1;
 		processDelay = 0;
+		globalTimer = 0;
 		pAvatar = std::make_unique<olc::Sprite>("./imgs/player.png");
 		pAvatarFlip = std::make_unique<olc::Sprite>("./imgs/player_flip.png");
         playerCenter = {float(pAvatar->width / 2.0), float(pAvatar->height / 2.0)};
@@ -199,6 +209,12 @@ public:
 		dinputBox = std::make_unique<olc::Decal>(inputBox.get());
 		nameBox = std::make_unique<olc::Sprite>("./imgs/name_box.png");
 		dnameBox = std::make_unique<olc::Decal>(nameBox.get());
+		chatBubble[0] = std::make_unique<olc::Sprite>("./imgs/chat1.png");
+		chatBubble[1] = std::make_unique<olc::Sprite>("./imgs/chat2.png");
+		chatBubble[2] = std::make_unique<olc::Sprite>("./imgs/chat3.png");
+		dchatBubble[0] = std::make_unique<olc::Decal>(chatBubble[0].get());
+		dchatBubble[1] = std::make_unique<olc::Decal>(chatBubble[1].get());
+		dchatBubble[2] = std::make_unique<olc::Decal>(chatBubble[2].get());
 		arrowPos = {0, 0};
 		arrowSpace = 5;
 		mBoxPos = {20.0, float(ScreenHeight() - 290.0)};
@@ -222,6 +238,7 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		// Called once per frame
+		globalTimer += fElapsedTime;
 		if (GetKey(olc::Key::ESCAPE).bPressed) // Quit with escape
 			return false;
 		if (GetKey(olc::Key::ENTER).bPressed) // Enter toggles input state
@@ -303,7 +320,8 @@ public:
 		for (auto c : others) // Draw the other players
             drawCharacter(c);
 		drawCharacter(player); // Draw the player
-		DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
+		if (!player.inputing)
+			DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
 		DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
 		DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
 		DrawDecal(nameBoxPos, dnameBox.get()); // Draw the name box
@@ -337,7 +355,6 @@ public:
 		return true;
 	}
 };
-
 
 int main()
 {
