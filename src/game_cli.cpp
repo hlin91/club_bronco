@@ -29,7 +29,7 @@ struct Character
         inputing = false;
     }
 
-    Character(olc::vf2d &p, olc::vf2d &cp, std::string &n)
+    Character(std::string &n, olc::vf2d p={0, 0}, olc::vf2d cp={0, 0})
     {
         pos = p;
         currPos = cp;
