@@ -17,6 +17,8 @@ struct Character
     bool dancing; // Dancing flag
     double danceAngle; // Current angle of rotation in the dance
     bool inputing; // Is the player currently inputing
+    bool moving; // Is the avatar still moving to a designated position
+    float moveAngle; // Current angle of rotation in move animation
 
     Character()
     {
@@ -27,9 +29,11 @@ struct Character
         dancing = false;
         danceAngle = 0;
         inputing = false;
+        moving = false;
+        moveAngle = 0;
     }
 
-    Character(std::string &n, olc::vf2d p={0, 0}, olc::vf2d cp={0, 0})
+    Character(std::string &n, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
     {
         pos = p;
         currPos = cp;
@@ -38,6 +42,8 @@ struct Character
         dancing = false;
         danceAngle = 0;
         inputing = false;
+        moving = false;
+        moveAngle = 0;
     }
 
     void move(float x, float y) // Move the character to specified position and update theta
@@ -60,7 +66,7 @@ private:
     Character player; // The player character
     std::string input; // The input string. Should limit to around 40 characters
     float walkSpeed; // The walk speed of the player in pixels per second
-    float danceSpeed; // The speed at which the player dances in radians per second
+    float danceSpeed; // The speed at which the player dances in radians per second. The walk animation speed also depends on this
     std::unique_ptr<olc::Sprite> pAvatar; // The avatar of the player character
     std::unique_ptr<olc::Sprite> pAvatarFlip; // The flipped avatar of the player character
     std::unique_ptr<olc::Decal> dpAvatar; // Decal version of player avatar
@@ -78,7 +84,6 @@ private:
     std::unique_ptr<olc::Sprite> chatBubble[3]; // The chat bubble animation
     std::unique_ptr<olc::Decal> dchatBubble[3];
     olc::vf2d playerCenter; // Center of player sprite
-    olc::vf2d origin; // The 0,0 position
     olc::vf2d arrowPos; // Position of arrow above player character
     olc::vf2d nameBoxPos; // Position of name box
     olc::vf2d mBoxPos; // Position of message box
@@ -92,8 +97,6 @@ private:
     static const int MBOX_CHAR_WIDTH = 45; // Approximate width of message box in characters
     float processDelay; // For limiting processing of held key
     double globalTimer; // Total amount of time passed in seconds
-    // For testing
-    unsigned long long itr = 0;
 
     char processAlnum() // Process an textual keystroke as character input
     {
@@ -161,6 +164,8 @@ private:
         {
             if (c.dancing) // Draw dancing player
                 DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
+            else if (c.moving)
+                DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(c.moveAngle) * (1.57 / 4), playerCenter);
             else
                 DrawDecal(c.currPos, dpAvatarFlip.get());
         }
@@ -168,6 +173,8 @@ private:
         {
             if (c.dancing)
                 DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatar.get(), sin(c.danceAngle) * (1.57 / 2), playerCenter, olc::vf2d(sin(c.danceAngle * 2) / 3 + 1, sin(c.danceAngle * 2) / 3 + 1));
+            else if (c.moving)
+                DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatar.get(), sin(c.moveAngle) * (1.57 / 4), playerCenter);
             else
                 DrawDecal(c.currPos, dpAvatar.get());
         }
@@ -178,12 +185,19 @@ private:
         }
     }
 
-    void moveCharacter(Character &c, float fElapsedTime) // Update the position and dance angle of the character
+    void moveCharacter(Character &c, float fElapsedTime) // Update the position, move angle, and dance angle of the character
     {
         if (sqrt(pow(c.currPos.x - c.pos.x, 2) + pow(c.currPos.y - c.pos.y, 2)) > walkSpeed * fElapsedTime)
         {
+            c.moveAngle += danceSpeed * 3 * fElapsedTime;
+            c.moving = true;
             c.currPos.x -= walkSpeed * cos(c.theta) * fElapsedTime;
             c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
+        }
+        else
+        {
+            c.moving = false;
+            c.moveAngle = 0;
         }
         if (c.dancing)
             c.danceAngle += danceSpeed * fElapsedTime;
@@ -200,10 +214,8 @@ public:
     {
         // Called once at the start, so create things here
         // TODO: Create slave thread to listen for updates from HTTP server
-        origin = {0, 0};
         player.pos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
         player.currPos = player.pos;
-        float playerTheta = 0;
         walkSpeed = 100;
         danceSpeed = 1;
         processDelay = 0;
@@ -237,8 +249,8 @@ public:
         messagePos = {mBoxPos.x + 12, mBoxPos.y + 12};
         nameBoxPos = {20.0, mBoxPos.y - 24 - nameBox->height};
         namePos = {nameBoxPos.x + 12, nameBoxPos.y + 12};
-        DrawSprite(origin, bg.get());
-        // For testing
+        DrawSprite({0, 0}, bg.get());
+        // TODO: For testing
         input = "";
         for (unsigned int i = 0; i < MAX_MESSAGES; ++i)
             messages.push_back("Test message");
@@ -317,11 +329,11 @@ public:
         }
         // Gradually move the player towards the designated position
         moveCharacter(player, fElapsedTime);
-        for (auto c : others) // Move and dance the other players
+        for (auto &c : others) // Move and dance the other players
             moveCharacter(c, fElapsedTime);
         arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
-
-        for (auto c : others) // Draw the other players
+        // Handle drawing
+        for (auto &c : others) // Draw the other players
             drawCharacter(c);
         drawCharacter(player); // Draw the player
         if (!player.inputing)
@@ -355,7 +367,6 @@ public:
             olc::vf2d drawPos = {namePos.x, namePos.y + 30 * 12};
             DrawStringDecal(drawPos, "...", olc::WHITE);
         }
-        
         return true;
     }
 };
