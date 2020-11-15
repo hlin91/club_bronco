@@ -187,7 +187,6 @@ private:
 
     void moveCharacter(Character &c, float fElapsedTime) // Update the position, move angle, and dance angle of the character
     {
-        c.moving = false;
         if (sqrt(pow(c.currPos.x - c.pos.x, 2) + pow(c.currPos.y - c.pos.y, 2)) > walkSpeed * fElapsedTime)
         {
             c.moveAngle += danceSpeed * 3 * fElapsedTime;
@@ -196,7 +195,10 @@ private:
             c.currPos.y -= walkSpeed * sin(c.theta) * fElapsedTime;
         }
         else
+        {
+            c.moving = false;
             c.moveAngle = 0;
+        }
         if (c.dancing)
             c.danceAngle += danceSpeed * fElapsedTime;
         else
