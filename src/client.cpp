@@ -8,7 +8,6 @@
 
 #define SA struct sockaddr
 
-
 using namespace std;
 
 char s_message[2048];
@@ -71,7 +70,29 @@ void create_server_socket(int port) {
     cout << "Listening for requests on port " << port << endl;
 }
 
+/*
+    Function to create a request to send to the server
+    method: a string that is POST, GET, etc.
+    headers: the fields that will help the server determine what to do.
+    
+    Note: headers is an unordered map which maps a certain field to a certain
+    value.
 
+*/
+std::string build_request(std::string method, std::unordered_map headers) {
+    std::string request = "";
+    request += (method + " / HTTP 1.1\n";
+    for(auto headers : header) {
+        request += header.first + ":" + header.second + "\n";
+    }
+    return request;
+}
+
+void send_request(std::string request) {
+    char* c_request;
+    c_request = request.c_str();
+    send(sock,c_request,strlen(c_request), 0);
+}
 
 int main() 
 {

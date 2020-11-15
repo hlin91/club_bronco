@@ -8,12 +8,26 @@
 #include <pthread.h>
 #include <list>
 #include <iterator>
+#include "Parser.c"
 
 #define SA struct sockaddr
 
 using namespace std;
 
-    static list<int> clients;
+struct Character
+{
+    std::string name //Name of character;
+    int xpos //x position of the character;
+    int ypos;
+    bool inputing;
+    bool dancing;
+}
+
+static Vector<Character> characters;
+
+static list<int> clients;
+
+bool process_request()
 
 int check_if_error(int returned_value, char *error_msg)
 {
@@ -72,7 +86,7 @@ void* handle_client(void* client_ptr) {
         int bytes_read = recv(client, request, sizeof(request), 0);
         check_if_error(bytes_read, "Error reading from client");
 
-        cout << request << endl;
+        char
         
         char response[BUFSIZ +1];
         bzero(response,sizeof(response));
@@ -87,6 +101,14 @@ void* handle_client(void* client_ptr) {
     }
     close(client);
     return 0;
+}
+
+std::string process_request(char* request) {
+    char *req;
+    char **headers;
+    char *message;
+    unsigned int numHeaders = 0;
+
 }
 
 int main() {
