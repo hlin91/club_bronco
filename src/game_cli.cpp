@@ -16,7 +16,7 @@ struct Character
     std::string name; // Player name
     bool dancing; // Dancing flag
     double danceAngle; // Current angle of rotation in the dance
-    bool inputing; // Is the player currently inputing
+    bool inputting; // Is the player currently inputting
     bool moving; // Is the avatar still moving to a designated position
     float moveAngle; // Current angle of rotation in move animation
 
@@ -28,7 +28,7 @@ struct Character
         name = "Player";
         dancing = false;
         danceAngle = 0;
-        inputing = false;
+        inputting = false;
         moving = false;
         moveAngle = 0;
     }
@@ -41,7 +41,7 @@ struct Character
         name = n.substr(0, MAX_NAME_LENGTH);
         dancing = false;
         danceAngle = 0;
-        inputing = false;
+        inputting = false;
         moving = false;
         moveAngle = 0;
     }
@@ -178,7 +178,7 @@ private:
             else
                 DrawDecal(c.currPos, dpAvatar.get());
         }
-        if (c.inputing) // Draw the chat bubble
+        if (c.inputting) // Draw the chat bubble
         {
             olc::vf2d drawPos = {float(c.currPos.x + pAvatar->width / 2.0 - chatBubble[0]->width / 2.0), float(c.currPos.y - chatBubble[0]->height - arrowSpace)};
             DrawDecal(drawPos, dchatBubble[int(globalTimer / 0.5) % 3].get()); // Determine the frame of the animation based on elapsed time
@@ -272,7 +272,7 @@ public:
         }
         if (GetKey(olc::Key::ENTER).bPressed) // Enter toggles input state
         {
-            if (player.inputing) // Done with current input string
+            if (player.inputting) // Done with current input string
             {
                 if (input.size())
                 {
@@ -284,10 +284,10 @@ public:
                 }
                 input.clear();
             }
-            player.inputing = !(player.inputing);
+            player.inputting = !(player.inputting);
             // TODO: Send server updated input state
         }
-        if (player.inputing) // Listen for alphanumeric key presses
+        if (player.inputting) // Listen for alphanumeric key presses
         {
             // Handle pressing of new key
             char c = processAlnum();
@@ -336,14 +336,14 @@ public:
         for (auto &c : others) // Draw the other players
             drawCharacter(c);
         drawCharacter(player); // Draw the player
-        if (!player.inputing)
+        if (!player.inputting)
             DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
         DrawDecal(mBoxPos, dmbox.get()); // Draw the message box
         DrawDecal(inputBoxPos, dinputBox.get()); // Draw the input box
         DrawDecal(nameBoxPos, dnameBox.get()); // Draw the name box
         DrawStringDecal(namePos, player.name.substr(0, 12), olc::WHITE); // Draw the first 12 characters of player name in the name box
-         // Draw the input line
-         if (player.inputing)
+        // Draw the input line
+        if (player.inputting)
             DrawStringDecal(inputPos, input + '_', olc::WHITE);
         else
             DrawStringDecal(inputPos, input, olc::WHITE);
