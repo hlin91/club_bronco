@@ -5,6 +5,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <errno.h>
+// #include <unordered_map> // Still doesn't fix the error at line 83
 
 #define SA struct sockaddr
 
@@ -79,10 +80,12 @@ void create_server_socket(int port) {
     value.
 
 */
-std::string build_request(std::string method, std::unordered_map headers) {
+std::string build_request(std::string method, std::unordered_map headers) // argument list for class template "std::unordered_map" is missing
+{ 
     std::string request = "";
-    request += (method + " / HTTP 1.1\n";
-    for(auto headers : header) {
+    request += (method + " / HTTP 1.1\n");
+    for (auto headers : header) // identifier "header" is undefined
+    {
         request += header.first + ":" + header.second + "\n";
     }
     return request;
@@ -90,7 +93,7 @@ std::string build_request(std::string method, std::unordered_map headers) {
 
 void send_request(std::string request) {
     char* c_request;
-    c_request = request.c_str();
+    c_request = request.c_str(); // Error: a value of type "const char *" cannot be assigned to an entity of type "char *"
     send(sock,c_request,strlen(c_request), 0);
 }
 

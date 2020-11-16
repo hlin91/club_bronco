@@ -9,6 +9,7 @@
 #include <list>
 #include <iterator>
 #include "Parser.c"
+#include <vector>
 
 #define SA struct sockaddr
 
@@ -16,18 +17,18 @@ using namespace std;
 
 struct Character
 {
-    std::string name //Name of character;
-    int xpos //x position of the character;
+    std::string name; //Name of character;
+    int xpos; //x position of the character;
     int ypos;
-    bool inputing;
+    bool inputting;
     bool dancing;
-}
+};
 
-static Vector<Character> characters;
+static vector<Character> characters;
 
 static list<int> clients;
 
-bool process_request()
+bool process_request();
 
 int check_if_error(int returned_value, char *error_msg)
 {
@@ -86,7 +87,7 @@ void* handle_client(void* client_ptr) {
         int bytes_read = recv(client, request, sizeof(request), 0);
         check_if_error(bytes_read, "Error reading from client");
 
-        char
+        //char
         
         char response[BUFSIZ +1];
         bzero(response,sizeof(response));
