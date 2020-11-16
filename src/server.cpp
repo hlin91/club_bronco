@@ -10,6 +10,7 @@
 #include <iterator>
 #include "Parser.c"
 #include <vector>
+#include <thread>
 
 #define SA struct sockaddr
 
@@ -73,12 +74,11 @@ int create_server_socket(int port) {
     return sock;
 }
 
-void* handle_client(void* client_ptr) {
-    pthread_detach(pthread_self());
+void handle_client(int client_ptr) {
 
-    cout << "Handling client" << endl;
+    cout << "Handling client " << client_ptr << endl;
 
-    int client = *((int*) client_ptr);
+    int client = client_ptr;
 
     //Request from the client
     while (1) {
@@ -86,22 +86,20 @@ void* handle_client(void* client_ptr) {
         bzero(request, sizeof(request));
         int bytes_read = recv(client, request, sizeof(request), 0);
         check_if_error(bytes_read, "Error reading from client");
-
-        //char
         
         char response[BUFSIZ +1];
         bzero(response,sizeof(response));
         int bytes_written = 0;
+        strcpy(response,"hello\n");
         //TODO: craft a response based on the request
         //Write the response to all the clients
         for (const auto& c : clients)
         {
             //NOTE: Eventually this will be response, not request
-            bytes_written = write( c, request, sizeof(request) );
+            bytes_written = write( c, response, sizeof(response) );
         }
     }
     close(client);
-    return 0;
 }
 
 std::string process_request(char* request) {
@@ -116,15 +114,16 @@ int main() {
     int port = 4310;
     int socket;
     socket = create_server_socket(port);
+    int client;
 
     while (true) {
-        int client = accept(socket, (struct sockaddr *)NULL, NULL);
+        client = accept(socket, (struct sockaddr *)NULL, NULL);
         cout << "Connected to client!" << endl;
         clients.push_back(client);
 
-        pthread_t tid;
-        int flag = pthread_create(&tid, NULL, handle_client, &client);
-        check_if_error(flag, "Problem creating thread");
+        std::thread tid;
+        tid = std::thread(handle_client,std::ref(client));
+        tid.join();
     }
 
     return 0;
