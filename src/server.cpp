@@ -78,6 +78,7 @@ void handle_client(int client_ptr) {
 
     cout << "Handling client " << client_ptr << endl;
 
+
     int client = client_ptr;
 
     //Request from the client
@@ -90,7 +91,8 @@ void handle_client(int client_ptr) {
         char response[BUFSIZ +1];
         bzero(response,sizeof(response));
         int bytes_written = 0;
-        strcpy(response,"hello\n");
+        strcat(response, "client: ");
+        strcat(response, request);
         //TODO: craft a response based on the request
         //Write the response to all the clients
         for (const auto& c : clients)
@@ -119,6 +121,7 @@ int main() {
     while (true) {
         client = accept(socket, (struct sockaddr *)NULL, NULL);
         cout << "Connected to client!" << endl;
+
         clients.push_back(client);
 
         std::thread tid;

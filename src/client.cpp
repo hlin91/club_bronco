@@ -11,6 +11,7 @@
 #include <iterator>
 #include <vector>
 #include <pthread.h>
+#include <string>
 
 #define SA struct sockaddr
 
@@ -19,13 +20,14 @@ using namespace std;
 class Client {
     
 private:
-    char[2048] s_message;
-    char[2048] r_message;
+    char s_message[2048];
+    char r_message[2048];
     int sock;
     bool open_for_sending = true;
     bool open_for_receiving = true;
     int port = 4310;
     std::thread thread_send, thread_receive;
+    int client_id = -1;
 
 public:
 
@@ -39,13 +41,12 @@ public:
     {
         while (open_for_receiving)
         {
-            recv(sock,r_message,len(r_message),0);
-            if (len(r_message) == 0) {
+            recv(sock,r_message,sizeof(r_message),0);
+            if (r_message[0] == '\0') {
                 continue;
             }
             puts(r_message);
-            puts("yoyoyo\n");
-            
+            bzero(&r_message,sizeof(r_message));
         }
     }
 
@@ -54,9 +55,12 @@ public:
 
         while (open_for_sending)
         {
-            cout << "Send a message: ";
-            cin.getline(s_message,20) ;
-            send(sock,s_message.data(),s_message.size(), 0);
+            std::string test = build_request("POST", std::list<std::string> {"Name","Doug","Color","Red"});
+            strcpy(s_message,test.c_str());
+            send(sock,s_message,sizeof(s_message), 0);
+            bzero(&s_message,sizeof(s_message));
+            cin.get();
+
         }
     }
 
@@ -107,13 +111,14 @@ public:
         std::list<std::string>::const_iterator it;
 
         std::string request = "";
-        request += (method + " / HTTP 1.1\n");
+        request += (method + " / HTTP/1.1\n");
         for (it = headers.begin(); it != headers.end(); ++it) // identifier "header" is undefined
         {
             request += it->c_str();
-            request += " : ";
+            request += ": ";
             ++it;
             request += it->c_str();
+            request += "\n";
         }
         return request;
     }
@@ -124,14 +129,14 @@ public:
         send(sock,c_request,strlen(c_request), 0);
     }
 
+    /*
+
+        Function to start receiving from the server
+
+    */
     int run() {
-        thread_send = std::thread(&Client::send_message, this);
         thread_receive = std::thread(&Client::receive_message, this);
-        thread_send.join();
-        thread_receive.join();
-        thread_send.detach();
         thread_receive.detach();
-        while (1);
         return 0;
     }
 
@@ -142,4 +147,9 @@ int main()
 {
     Client myClient(4310);
     myClient.run();
+    std::string request = myClient.build_request("POST",list<std::string> {"Name","Penguin","Dancing","Yes"});
+    myClient.send_request(request);
+    while (1);
+    //This while loop would be in the game, listening to the game itself for events to send.
+    return 0;
 }
