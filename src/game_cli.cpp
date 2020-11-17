@@ -2,9 +2,9 @@
 #define OLC_PGE_APPLICATION
 
 #include <cmath>
-#include <vector>
 #include <deque>
 #include <string>
+#include <unordered_map>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 
 struct Character
@@ -19,6 +19,7 @@ struct Character
     bool inputting; // Is the player currently inputting
     bool moving; // Is the avatar still moving to a designated position
     float moveAngle; // Current angle of rotation in move animation
+    unsigned long long id; // The unique ID associated with the character
 
     Character()
     {
@@ -31,9 +32,10 @@ struct Character
         inputting = false;
         moving = false;
         moveAngle = 0;
+        id = 0;
     }
 
-    Character(std::string &n, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
+    Character(std::string &n, unsigned long long i=0, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
     {
         pos = p;
         currPos = cp;
@@ -44,6 +46,7 @@ struct Character
         inputting = false;
         moving = false;
         moveAngle = 0;
+        id = i;
     }
 
     void move(float x, float y) // Move the character to specified position and update theta
@@ -207,7 +210,7 @@ private:
 
 public:
     // These variables will need to be updated by slave threads
-    std::vector<Character> others; // List of other players
+    std::unordered_map<unsigned long long, Character> others; // List of other players
     std::deque<std::string> messages; // List of messages
 
     bool OnUserCreate() override
@@ -256,7 +259,7 @@ public:
             messages.push_back("Test message");
         for (unsigned int i = 1; i <= 30; ++i)
         {
-            others.push_back(player);
+            others.insert(std::pair(i, player));
         }
         return true;
     }
@@ -330,11 +333,11 @@ public:
         // Gradually move the player towards the designated position
         moveCharacter(player, fElapsedTime);
         for (auto &c : others) // Move and dance the other players
-            moveCharacter(c, fElapsedTime);
+            moveCharacter(c.second, fElapsedTime);
         arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
         // Handle drawing
         for (auto &c : others) // Draw the other players
-            drawCharacter(c);
+            drawCharacter(c.second);
         drawCharacter(player); // Draw the player
         if (!player.inputting)
             DrawDecal(arrowPos, darrow.get()); // Draw the arrow above player
