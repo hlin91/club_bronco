@@ -99,26 +99,26 @@ public:
         value.
 
     */
-    // std::string build_request(std::string method, std::list<string> headers) // argument list for class template "std::unordered_map" is missing
-    // { 
-    //     std::list<std::string>::const_iterator it;
+    std::string build_request(std::string method, std::list<string> headers) // argument list for class template "std::unordered_map" is missing
+    { 
+        std::list<std::string>::const_iterator it;
 
-    //     std::string request = "";
-    //     request += (method + " / HTTP 1.1\n");
-    //     for (it = headers.begin(); it != headers.end; ++it) // identifier "header" is undefined
-    //     {
-    //         request += it->c_str();
-    //         request += " : ";
-    //         ++it;
-    //         request += it->c_str();
-    //     }
-    //     return request;
-    // }
+        std::string request = "";
+        request += (method + " / HTTP 1.1\n");
+        for (it = headers.begin(); it != headers.end(); ++it) // identifier "header" is undefined
+        {
+            request += it->c_str();
+            request += " : ";
+            ++it;
+            request += it->c_str();
+        }
+        return request;
+    }
 
     void send_request(std::string request) {
-        //char c_request[2048];
-        //c_request = request.c_str(); // Error: a value of type "const char *" cannot be assigned to an entity of type "char *"
-        //send(sock,c_request,strlen(c_request), 0);
+        char c_request[2048];
+        strcpy(c_request, request.c_str()); // Error: a value of type "const char *" cannot be assigned to an entity of type "char *"
+        send(sock,c_request,strlen(c_request), 0);
     }
 
     int run() {

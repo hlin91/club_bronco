@@ -1,0 +1,7 @@
+client.cpp: In member function ‘void Client::create_server_socket()’:
+client.cpp:83:30: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   83 |         check_if_error(sock, "Error with socket");
+      |                              ^~~~~~~~~~~~~~~~~~~
+client.cpp:85:102: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   85 |         check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)), "setsockopt");
+      |                                                                                                      ^~~~~~~~~~~~
