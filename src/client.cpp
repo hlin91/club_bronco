@@ -9,6 +9,7 @@
 #include <unordered_map> // Still doesn't fix the error at line 83
 #include <list>
 #include <iterator>
+#include <vector>
 #include <pthread.h>
 
 #define SA struct sockaddr
@@ -18,8 +19,8 @@ using namespace std;
 class Client {
     
 private:
-    char s_message[2048];
-    char r_message[2048];
+    char[2048] s_message;
+    char[2048] r_message;
     int sock;
     bool open_for_sending = true;
     bool open_for_receiving = true;
@@ -38,20 +39,24 @@ public:
     {
         while (open_for_receiving)
         {
-            recv(sock,r_message,2048,0);
+            recv(sock,r_message,len(r_message),0);
+            if (len(r_message) == 0) {
+                continue;
+            }
             puts(r_message);
-            memset(r_message,0,sizeof(r_message));
+            puts("yoyoyo\n");
+            
         }
     }
 
     void send_message() 
     {
+
         while (open_for_sending)
         {
             cout << "Send a message: ";
-            cin >> s_message;
-            send(sock,s_message,strlen(s_message), 0);
-            memset(s_message,0,sizeof(s_message));
+            cin.getline(s_message,20) ;
+            send(sock,s_message.data(),s_message.size(), 0);
         }
     }
 
@@ -86,8 +91,6 @@ public:
 
         //Connect to server
         connect(sock, (SA*)&server_address,sizeof(server_address));
-
-        cout << "Listening for requests on port " << port << endl;
     }
 
     /*
@@ -117,7 +120,7 @@ public:
 
     void send_request(std::string request) {
         char c_request[2048];
-        strcpy(c_request, request.c_str()); // Error: a value of type "const char *" cannot be assigned to an entity of type "char *"
+        strcpy(c_request, request.c_str());
         send(sock,c_request,strlen(c_request), 0);
     }
 
@@ -126,6 +129,8 @@ public:
         thread_receive = std::thread(&Client::receive_message, this);
         thread_send.join();
         thread_receive.join();
+        thread_send.detach();
+        thread_receive.detach();
         while (1);
         return 0;
     }

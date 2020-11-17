@@ -123,7 +123,7 @@ int main() {
 
         std::thread tid;
         tid = std::thread(handle_client,std::ref(client));
-        tid.join();
+        tid.detach();
     }
 
     return 0;
