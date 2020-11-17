@@ -11,6 +11,7 @@
 #include "Parser.c"
 #include <vector>
 #include <thread>
+#include <unordered_map>
 
 #define SA struct sockaddr
 
@@ -25,7 +26,7 @@ struct Character
     bool dancing;
 };
 
-static vector<Character> characters;
+static std::unordered_map<int, Character> world_state;
 
 static list<int> clients;
 
@@ -77,7 +78,6 @@ int create_server_socket(int port) {
 void handle_client(int client_ptr) {
 
     cout << "Handling client " << client_ptr << endl;
-
 
     int client = client_ptr;
 

@@ -28,13 +28,14 @@ private:
     int port = 4310;
     std::thread thread_send, thread_receive;
     int client_id = -1;
+    std::string client_name = "";
 
 public:
 
-    Client(int p)
+    Client(int p, std::string c_n)
     {
         port = p;
-        create_server_socket();
+        client_name = c_n;
     }
 
     void receive_message() 
@@ -48,6 +49,10 @@ public:
             puts(r_message);
             bzero(&r_message,sizeof(r_message));
         }
+    }
+
+    int get_id() {
+        recv(sock,r_message,sizeof(r_message,0));
     }
 
     void send_message() 
@@ -112,6 +117,9 @@ public:
 
         std::string request = "";
         request += (method + " / HTTP/1.1\n");
+
+        request += "ID: " + client_id;
+        request += "Name: " + client_name;
         for (it = headers.begin(); it != headers.end(); ++it) // identifier "header" is undefined
         {
             request += it->c_str();
@@ -135,6 +143,7 @@ public:
 
     */
     int run() {
+        create_server_socket();
         thread_receive = std::thread(&Client::receive_message, this);
         thread_receive.detach();
         return 0;
@@ -145,9 +154,9 @@ public:
 
 int main() 
 {
-    Client myClient(4310);
+    Client myClient(4310, "John");
     myClient.run();
-    std::string request = myClient.build_request("POST",list<std::string> {"Name","Penguin","Dancing","Yes"});
+    std::string request = myClient.build_request("POST",list<std::string> {"Xpos","0","Ypos","0"});
     myClient.send_request(request);
     while (1);
     //This while loop would be in the game, listening to the game itself for events to send.
