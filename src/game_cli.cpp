@@ -19,6 +19,7 @@ struct Character
     bool inputting; // Is the player currently inputting
     bool moving; // Is the avatar still moving to a designated position
     float moveAngle; // Current angle of rotation in move animation
+    unsigned long long id; // The unique ID associated with the character
 
     Character()
     {
@@ -31,9 +32,10 @@ struct Character
         inputting = false;
         moving = false;
         moveAngle = 0;
+        id = 0;
     }
 
-    Character(std::string &n, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
+    Character(std::string &n, unsigned long long i=0, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
     {
         pos = p;
         currPos = cp;
@@ -44,6 +46,7 @@ struct Character
         inputting = false;
         moving = false;
         moveAngle = 0;
+        id = i;
     }
 
     void move(float x, float y) // Move the character to specified position and update theta
