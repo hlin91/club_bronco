@@ -19,6 +19,7 @@ using namespace std;
 
 struct Character
 {
+    int id = -1;
     std::string name; //Name of character;
     int xpos; //x position of the character;
     int ypos;
@@ -28,7 +29,7 @@ struct Character
 
 static std::unordered_map<int, Character> world_state;
 
-static list<int> clients;
+static int num_clients = 0;
 
 bool process_request();
 
@@ -79,13 +80,19 @@ void handle_client(int client_ptr) {
 
     cout << "Handling client " << client_ptr << endl;
 
-    int client = client_ptr;
+    int client_id = client_ptr;
+
+    //Write to this client only and give them their client_id;
+    char *client_id_to_send = (char*)&client_id;
+    int client_id_size = sizeof(client_id);
+    int rc;
+    rc = write(client_id,client_id_to_send,client_id_size);
 
     //Request from the client
     while (1) {
         char request[BUFSIZ + 1];
         bzero(request, sizeof(request));
-        int bytes_read = recv(client, request, sizeof(request), 0);
+        int bytes_read = recv(client_id, request, sizeof(request), 0);
         check_if_error(bytes_read, "Error reading from client");
         
         char response[BUFSIZ +1];
@@ -121,9 +128,7 @@ int main() {
     while (true) {
         client = accept(socket, (struct sockaddr *)NULL, NULL);
         cout << "Connected to client!" << endl;
-
-        clients.push_back(client);
-
+        
         std::thread tid;
         tid = std::thread(handle_client,std::ref(client));
         tid.detach();

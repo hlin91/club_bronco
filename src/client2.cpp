@@ -11,8 +11,6 @@
 #include <vector>
 #include <pthread.h>
 #include <string>
-#include <mutex>
-#include "client.hpp"
 
 #define SA struct sockaddr
 
@@ -64,9 +62,9 @@ void Client::receive_response()
         }
         else
         {
-            response_queue_mutex.lock();
-            response_queue.push_back(r_message);
-            response_queue_mutex.unlock();
+            request_queue_mutex.lock();
+            request_queue.push_back(r_message);
+            request_queue_mutex.unlock();
             bzero(&r_message,sizeof(r_message));
         }
 
@@ -74,13 +72,13 @@ void Client::receive_response()
 }
 
 int Client::get_and_set_id() {
-    recv(sock,r_message,sizeof(r_message,0),0);
+    recv(sock,r_message,sizeof(r_message,0));
     std::string id_num(r_message);
     client_id = std::stoi (r_message, nullptr);
     bzero(&r_message,sizeof(r_message));
 }
 
-std::string Client::build_request(std::string method, std::list<std::string> headers) // argument list for class template "std::unordered_map" is missing
+std::string Client::build_request(std::string method, std::list<string> headers) // argument list for class template "std::unordered_map" is missing
 { 
     std::list<std::string>::const_iterator it;
 
@@ -110,13 +108,13 @@ std::string Client::pop_response()
 {   
     std::string oldest_response;
 
-    response_queue_mutex.lock();
+    request_queue_mutex.lock();
 
     oldest_response.assign(response_queue.front());
     response_queue.pop_front();
 
     response_queue_mutex.unlock();
-    return oldest_response;
+    return oldest_response
 }
 
 /*
@@ -127,13 +125,7 @@ std::string Client::pop_response()
 int Client::run() {
     create_server_socket();
     get_and_set_id();
-    std::cout << "My id is: " + client_id << std::endl;
-    thread_receive = std::thread(&Client::receive_response, this);
+    thread_receive = std::thread(&Client::receive_message, this);
     thread_receive.detach();
     return 0;
-}
-
-int main() {
-    Client myClient(4310, "Johnny");
-    myClient.run();
 }
