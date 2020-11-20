@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
+#include "Polygon.h"
 
 struct Character
 {
@@ -100,6 +101,8 @@ private:
     static const int MBOX_CHAR_WIDTH = 45; // Approximate width of message box in characters
     float processDelay; // For limiting processing of held key
     double globalTimer; // Total amount of time passed in seconds
+    harv::Polygon bounds; // Polygonal boundary of the walkable area
+    harv::Polygon rectBounds; // Rectilinear approximation of the walkable area to reduce computational complexity
 
     char processAlnum() // Process an textual keystroke as character input
     {
@@ -253,13 +256,18 @@ public:
         nameBoxPos = {20.0, mBoxPos.y - 24 - nameBox->height};
         namePos = {nameBoxPos.x + 12, nameBoxPos.y + 12};
         DrawSprite({0, 0}, bg.get());
+        // TODO: Define the polygonal boundaries
+        
         // TODO: For testing
         input = "";
-        for (unsigned int i = 0; i < MAX_MESSAGES; ++i)
-            messages.push_back("Test message");
-        for (unsigned int i = 1; i <= 30; ++i)
+        for (unsigned int i = 0; i < 5; ++i)
         {
-            others.insert(std::pair(i, player));
+            Character p;
+            p.pos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
+            p.pos.x += rand() % 100;
+            p.pos.y += rand() % 100;
+            p.currPos = p.pos;
+            others.insert(std::pair(i, p));
         }
         return true;
     }
