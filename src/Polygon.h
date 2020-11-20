@@ -7,9 +7,9 @@
 #include <assert.h>
 #include <string>
 
-#define float_type double
+#define float_type float
 #define PI 3.14159265358979323846
-#define EPSILON DBL_EPSILON
+#define EPSILON FLT_EPSILON
 #define INF 1000000 // An effective infinity that will not overflow the float type.
 
 namespace harv // Wrap everything in my own namespace to avoid conflicts
