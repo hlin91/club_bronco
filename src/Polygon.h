@@ -7,9 +7,9 @@
 #include <assert.h>
 #include <string>
 
-#define float_type float
+#define float_type double
 #define PI 3.14159265358979323846
-#define EPSILON FLT_EPSILON
+#define EPSILON DBL_EPSILON
 #define INF 1000000 // An effective infinity that will not overflow the float type.
 
 namespace harv // Wrap everything in my own namespace to avoid conflicts
@@ -42,7 +42,7 @@ namespace harv // Wrap everything in my own namespace to avoid conflicts
         return s.str();
         }
         bool operator==(const Coord &op) const
-        { return ((x == op.x) && (y == op.y)); }
+        { return (abs(x - op.x) < EPSILON && abs(y - op.y) < EPSILON); }
         bool operator !=(const Coord &op) const
         { return !((*this) == op); }
         // Some arithmetic operators to aid in vector arithmetic
@@ -183,7 +183,7 @@ namespace harv // Wrap everything in my own namespace to avoid conflicts
     { return c1.x * c2.y - c2.x * c1.y; }
 
     bool intersection(const Edge &e1, const Edge &e2, Coord &intersect) // Finds the intersection of two line segments and stores the result in intersect.
-    // Otherwise, intersect will be NULL. We will treat collinear lines as non-intersecting and return null.
+    // Otherwise, intersect will be NULL.
     {
         // References this: https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282
         // and this: https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments
@@ -195,7 +195,10 @@ namespace harv // Wrap everything in my own namespace to avoid conflicts
         float_type rxs = cross(r, s);
         float_type qpxr = cross(Coord(q1.x - p1.x, q1.y - p1.y), r);
         if (abs(rxs) < EPSILON && abs(qpxr) < EPSILON) // The two edges are collinear
-            return false; // Treat this as no intersection even if they might overlap
+        {
+            intersect = e1.v1;
+            return true;
+        }
         if (abs(rxs) < EPSILON && !(abs(qpxr) < EPSILON)) // The two lines are parallel and non-intersecting
             return false;
         float_type t = cross(q1 - p1, s) / rxs;
@@ -207,5 +210,8 @@ namespace harv // Wrap everything in my own namespace to avoid conflicts
         }
             return false; // No intersection was found
     }
+
+    float_type distance(const Coord &v1, const Coord &v2) // Find the distance between two vertices
+    { return sqrt(pow((v2.y - v1.y), 2) + pow(v2.x - v1.x, 2)); }
 }
 

@@ -103,7 +103,7 @@ private:
     double globalTimer; // Total amount of time passed in seconds
     harv::Polygon bounds; // Polygonal boundary of the walkable area
     harv::Polygon rectBounds; // Rectilinear approximation of the walkable area to reduce computational complexity
-
+    
     char processAlnum() // Process an textual keystroke as character input
     {
         char c = 0;
@@ -173,7 +173,7 @@ private:
             else if (c.moving)
                 DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatarFlip.get(), sin(c.moveAngle) * (1.57 / 4), playerCenter);
             else
-                DrawDecal(c.currPos, dpAvatarFlip.get());
+                DrawDecal(olc::vf2d(c.currPos.x, c.currPos.y), dpAvatarFlip.get());
         }
         else
         {
@@ -182,11 +182,11 @@ private:
             else if (c.moving)
                 DrawRotatedDecal(olc::vf2d(c.currPos.x + playerCenter.x, c.currPos.y + playerCenter.y), dpAvatar.get(), sin(c.moveAngle) * (1.57 / 4), playerCenter);
             else
-                DrawDecal(c.currPos, dpAvatar.get());
+                DrawDecal(olc::vf2d(c.currPos.x, c.currPos.y), dpAvatar.get());
         }
         if (c.inputting) // Draw the chat bubble
         {
-            olc::vf2d drawPos = {float(c.currPos.x + pAvatar->width / 2.0 - chatBubble[0]->width / 2.0), float(c.currPos.y - chatBubble[0]->height - arrowSpace)};
+            olc::vf2d drawPos = {float(c.currPos.x + playerCenter.x - chatBubble[0]->width / 2.0), float(c.currPos.y - chatBubble[0]->height - arrowSpace)};
             DrawDecal(drawPos, dchatBubble[int(globalTimer / 0.5) % 3].get()); // Determine the frame of the animation based on elapsed time
         }
     }
@@ -209,6 +209,59 @@ private:
             c.danceAngle += danceSpeed * fElapsedTime;
         else
             c.danceAngle = 0;
+    }
+
+    // Check if the coord is inside the boundary and return the intersection with vector from currPos to coord if not
+    bool insideBounds(float x, float y, harv::Coord &intersect)
+    {
+        bool found = false;
+        std::vector<harv::Coord> intrs; // List of found intersections
+        // Draw vector from current position to designated position
+        harv::Edge e;
+        e.v1 = harv::Coord(player.currPos.x, player.currPos.y);
+        e.v2 = harv::Coord(x, y);
+        // Special case for when the current position coincides with a boundary vertex
+        for (auto &v : bounds.v)
+        {
+            if (abs(e.v1.x - v.x) < 10 && abs(e.v1.y - v.y) < 10)
+            {
+                // Don't move
+                intersect = e.v1;
+                return false;
+            }
+        }
+        // If the vector to the designated position is within the boundary, we will find no intersection
+        // Else, we will find at least one intersection
+        for (unsigned int i = 0; i < bounds.size(); ++i)
+        {
+            harv::Edge edge = bounds.edge(i);
+            found = harv::intersection(e, edge, intersect);
+            if (found)
+            {
+                // Offset the intersection by a bit to avoid clipping
+                intersect.x -= 10 * cos(edge.theta() + PI / 2);
+                intersect.y -= 10 * sin(edge.theta() + PI / 2);
+                intrs.push_back(intersect);
+            }
+        }
+        if (intrs.size() == 0)
+            return true;
+        else if (intrs.size() == 1)
+            intersect = intrs[0];
+        else // Return the intersection closest to current position
+        {
+            double minDist = harv::distance(e.v1, intrs[0]);
+            intersect = intrs[0];
+            for (unsigned int i = 0; i < intrs.size(); ++i)
+            {
+                if (harv::distance(e.v1, intrs[i]) < minDist)
+                {
+                    minDist = harv::distance(e.v1, intrs[i]);
+                    intersect = intrs[i];
+                }
+            }
+        }
+        return false;
     }
 
 public:
@@ -256,8 +309,35 @@ public:
         nameBoxPos = {20.0, mBoxPos.y - 24 - nameBox->height};
         namePos = {nameBoxPos.x + 12, nameBoxPos.y + 12};
         DrawSprite({0, 0}, bg.get());
-        // TODO: Define the polygonal boundaries
-        
+        // Define rectilinear approximation of boundary
+        rectBounds.addVert(harv::Coord(175, 150));
+        rectBounds.addVert(harv::Coord(180, 460));
+        rectBounds.addVert(harv::Coord(1090, 460));
+        rectBounds.addVert(harv::Coord(1090, 150));
+        // Define high resolution boundary
+        bounds.addVert(harv::Coord(292, 5));
+        bounds.addVert(harv::Coord(169, 136));
+        bounds.addVert(harv::Coord(169,212));
+        bounds.addVert(harv::Coord(102, 306));
+        bounds.addVert(harv::Coord(90, 382));
+        bounds.addVert(harv::Coord(75, 498));
+        bounds.addVert(harv::Coord(197, 544));
+        bounds.addVert(harv::Coord(262, 473));
+        bounds.addVert(harv::Coord(384, 573));
+        bounds.addVert(harv::Coord(951, 574));
+        bounds.addVert(harv::Coord(1189, 529));
+        bounds.addVert(harv::Coord(1126, 392));
+        bounds.addVert(harv::Coord(1164, 359));
+        bounds.addVert(harv::Coord(1077, 273));
+        bounds.addVert(harv::Coord(1166, 259));
+        bounds.addVert(harv::Coord(1159, 247));
+        bounds.addVert(harv::Coord(1071, 201));
+        bounds.addVert(harv::Coord(1114, 178));
+        bounds.addVert(harv::Coord(973, 96));
+        bounds.addVert(harv::Coord(793, 44));
+        bounds.addVert(harv::Coord(647, 32));
+        bounds.addVert(harv::Coord(512, 43));
+        bounds.addVert(harv::Coord(432, 5));
         // TODO: For testing
         input = "";
         for (unsigned int i = 0; i < 5; ++i)
@@ -330,7 +410,21 @@ public:
         }
         if (GetMouse(0).bPressed) // Move player on mouse click
         {
-            player.move(GetMouseX() - (pAvatar->width / 2.0), GetMouseY() - (pAvatar->height / 2.0));
+            float x = GetMouseX();
+            float y = GetMouseY();
+            // Check against the simple boundary first
+            if ((x < rectBounds.v[0].x || x > rectBounds.v[2].x) || (y < rectBounds.v[0].y || y > rectBounds.v[2].y)) // If the position is outside the simple boundary
+            {
+                // Do a check against the high resolution boundary
+                harv::Coord intersection;
+                if (!insideBounds(x, y, intersection)) // If outside the boundary
+                {
+                    // Move to the intersection
+                    x = intersection.x;
+                    y = intersection.y;
+                }
+            }
+            player.move(x, y);
             // TODO: Send server updated position
         }
         if (GetKey(olc::Key::DOWN).bPressed) // Toggle dancing for player
@@ -342,7 +436,7 @@ public:
         moveCharacter(player, fElapsedTime);
         for (auto &c : others) // Move and dance the other players
             moveCharacter(c.second, fElapsedTime);
-        arrowPos = {float(player.currPos.x + pAvatar->width / 2.0 - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
+        arrowPos = {float(player.currPos.x + playerCenter.x - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
         // Handle drawing
         for (auto &c : others) // Draw the other players
             drawCharacter(c.second);
