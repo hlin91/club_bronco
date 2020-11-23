@@ -268,6 +268,7 @@ public:
     // These variables will need to be updated by slave threads
     std::unordered_map<unsigned long long, Character> others; // List of other players
     std::deque<std::string> messages; // List of messages
+    bool gameOver; // Used to tell slave threads that the game has ended
 
     bool OnUserCreate() override
     {
@@ -338,6 +339,7 @@ public:
         bounds.addVert(harv::Coord(647, 32));
         bounds.addVert(harv::Coord(512, 43));
         bounds.addVert(harv::Coord(432, 5));
+        gameOver = false;
         // TODO: For testing
         input = "";
         for (unsigned int i = 0; i < 5; ++i)
