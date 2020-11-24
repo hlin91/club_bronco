@@ -8,6 +8,23 @@
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 #include "Polygon.h"
 
+std::string PLAYER_NAME; // The name of the player
+
+// Initial hand shake. Get the status of the players in the room and return the id to be used for this client
+unsigned int getWorldState(std::unordered_map<int, Character>&);
+// Send a message to be posted to the server
+void sendMessage(std::string&);
+// Poll the server for the latest updates to other players and the message box
+void pollState(std::unordered_map<int, Character>&, std::vector<std::string>&);
+// Tell the server to update the player's position
+void sendMovement(float, float);
+// Tell the server that the player is inputting
+void sendInputting(bool);
+// Tell the server that the player is dancing
+void sendDancing(bool);
+// Tell the server that the player is leaving
+void sendExit();
+
 struct Character
 {
     static const int MAX_NAME_LENGTH = 20;
@@ -20,7 +37,7 @@ struct Character
     bool inputting; // Is the player currently inputting
     bool moving; // Is the avatar still moving to a designated position
     float moveAngle; // Current angle of rotation in move animation
-    unsigned long long id; // The unique ID associated with the character
+    int id; // The unique ID associated with the character
 
     Character()
     {
@@ -36,7 +53,7 @@ struct Character
         id = 0;
     }
 
-    Character(std::string &n, unsigned long long i=0, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
+    Character(std::string &n, unsigned int i=0, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
     {
         pos = p;
         currPos = cp;
@@ -266,7 +283,7 @@ private:
 
 public:
     // These variables will need to be updated by slave threads
-    std::unordered_map<unsigned long long, Character> others; // List of other players
+    std::unordered_map<int, Character> others; // List of other players
     std::deque<std::string> messages; // List of messages
     bool gameOver; // Used to tell slave threads that the game has ended
 
@@ -274,8 +291,11 @@ public:
     {
         // Called once at the start, so create things here
         // TODO: Create slave thread to listen for updates from HTTP server
-        player.pos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
+        player.id = getWorldState(others);
+        player.pos = {float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0)};
         player.currPos = player.pos;
+        player.name = PLAYER_NAME;
+        sendMessage(player.name + " has joined!");
         walkSpeed = 100;
         danceSpeed = 1;
         processDelay = 0;
@@ -360,7 +380,7 @@ public:
         globalTimer += fElapsedTime;
         if (GetKey(olc::Key::ESCAPE).bPressed) // Quit with escape
         {
-            // TODO: Tell server that player is leaving
+            sendExit();
             return false;
         }
         if (GetKey(olc::Key::ENTER).bPressed) // Enter toggles input state
@@ -373,12 +393,12 @@ public:
                     addMessage(m.substr(0, 45));
                     if (m.size() > MBOX_CHAR_WIDTH) // If the player name plus the message exceeds message box width
                         addMessage("    " + m.substr(45)); // Print the rest on a indented new line
-                    // TODO: Send the input string to the server
+                    sendMessage(input);
                 }
                 input.clear();
             }
             player.inputting = !(player.inputting);
-            // TODO: Send server updated input state
+            sendInputting(player.inputting);
         }
         if (player.inputting) // Listen for alphanumeric key presses
         {
@@ -427,12 +447,12 @@ public:
                 }
             }
             player.move(x, y);
-            // TODO: Send server updated position
+            sendMovement(x, y);
         }
         if (GetKey(olc::Key::DOWN).bPressed) // Toggle dancing for player
         {
             player.dancing = !(player.dancing);
-            // TODO: Send server updated dancing state
+            sendDancing(player.dancing);
         }
         // Gradually move the player towards the designated position
         moveCharacter(player, fElapsedTime);
@@ -480,6 +500,10 @@ public:
 
 int main()
 {
+    // Get the player name
+    std::cout << "Enter your name: ";
+    std::cin.ignore();
+    std::cin >> PLAYER_NAME;
     ClubBronco cb;
     if (cb.Construct(1280, 720, 1, 1))
         cb.Start();
