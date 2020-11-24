@@ -74,21 +74,32 @@ bool parseRequest(char *s, char *req, char **headers, char *message, unsigned in
 bool parseHeader(char *s, char *key, char *val)
 {
     unsigned int pos1 = 0;
-    unsigned int pos2 = strlen(s);
-    unsigned int i = pos1;
+    unsigned int pos2 = strlen(s) - 1;
+    unsigned int colonPos;
+    unsigned int i;
     /* Initialize return values */
     key[0] = '\0';
     val[0] = '\0';
-    if (pos2 == 0) /* Empty string passed */
+    /* Remove trailing whitespace */
+    while (pos1 <= pos2 && isspace(s[pos1]))
+        ++pos1;
+    while (pos2 > pos1 && isspace(s[pos2]))
+        --pos2;
+    if (pos1 >= pos2) /* Empty string passed */
         return false;
     /* Split the header at the colon */
+    i = pos1;
     while (s[i] != ':' && i <= pos2)
         ++i;
     if (i > pos2) /* No colon found */
         return false;
-    strncpy(key, s, i - pos1);
-    key[i - pos1] = '\0';
-    ++i;
+    colonPos = i;
+    --i;
+    while (i > 0 && isspace(s[i]))
+        --i;
+    strncpy(key, s + pos1, i - pos1 + 1);
+    key[i - pos1 + 1] = '\0';
+    i = colonPos + 1;
     if (i > pos2) /* No value found */
         return false;
     while (isspace(s[i]))
