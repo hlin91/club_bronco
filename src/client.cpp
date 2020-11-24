@@ -16,7 +16,8 @@
 
 #define SA struct sockaddr
 
-Client::Client(int p, std::string name) {
+Client::Client(int p, std::string name)
+{
     port = p;
     client_name = name;
 }
@@ -100,7 +101,8 @@ std::string Client::build_request(std::string method, std::list<std::string> hea
     return request;
 }
 
-void Client::send_request(std::string request) {
+void Client::send_request(std::string request)
+{
     char c_request[2048];
     strcpy(c_request, request.c_str());
     send(sock,c_request,strlen(c_request), 0);
@@ -124,7 +126,8 @@ std::string Client::pop_response()
     Function to start receiving from the server
 
 */
-int Client::run() {
+int Client::run()
+{
     create_server_socket();
     get_and_set_id();
     std::cout << "My id is: " + client_id << std::endl;
@@ -133,7 +136,8 @@ int Client::run() {
     return 0;
 }
 
-int main() {
+int main()
+{
     Client myClient(4310, "Johnny");
     myClient.run();
 }

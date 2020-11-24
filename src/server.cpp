@@ -43,7 +43,8 @@ int check_if_error(int returned_value, char *error_msg)
     return returned_value;
 }
 
-int create_server_socket(int port) {
+int create_server_socket(int port)
+{
 
     struct sockaddr_in server_address;
 
@@ -76,7 +77,8 @@ int create_server_socket(int port) {
     return sock;
 }
 
-void handle_client(int client_ptr) {
+void handle_client(int client_ptr)
+{
 
     cout << "Handling client " << client_ptr << endl;
 
@@ -111,7 +113,8 @@ void handle_client(int client_ptr) {
     close(client);
 }
 
-std::string process_request(char* request) {
+std::string process_request(char* request)
+{
     char *req;
     char **headers;
     char *message;
@@ -119,7 +122,8 @@ std::string process_request(char* request) {
 
 }
 
-int main() {
+int main()
+{
     int port = 4310;
     int socket;
     socket = create_server_socket(port);
