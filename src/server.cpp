@@ -17,7 +17,7 @@
 
 using namespace std;
 
-struct Character
+struct ServerCharacter
 {
     int id = -1;
     std::string name; //Name of character;
@@ -27,11 +27,18 @@ struct Character
     bool dancing;
 };
 
-static std::unordered_map<int, Character> world_state;
+static std::unordered_map<int, ServerCharacter> world_state;
 
 static int num_clients = 0;
 
-bool process_request();
+bool process_request(char* s) {
+    char req[1024];
+    char *headers[MAX_ARGS];
+    char message[1024];
+    unsigned int numHeaders;
+    parseRequest(s,req,headers,message,numHeaders);
+    
+}
 
 int check_if_error(int returned_value, char *error_msg)
 {
@@ -102,11 +109,9 @@ void handle_client(int client_ptr)
         int bytes_written = 0;
         strcat(response, "client: ");
         strcat(response, request);
-        //TODO: craft a response based on the request
-        //Write the response to all the clients
+        process_request(request);
         for (const auto& c : clients)
         {
-            //NOTE: Eventually this will be response, not request
             bytes_written = write( c, response, sizeof(response) );
         }
     }

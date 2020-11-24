@@ -16,6 +16,18 @@
 
 #define SA struct sockaddr
 
+struct ServerCharacter
+{
+    int id = -1;
+    std::string name; //Name of character;
+    int xpos; //x position of the character;
+    int ypos;
+    bool inputting;
+    bool dancing;
+};
+
+
+
 Client::Client(int p, std::string name)
 {
     port = p;
