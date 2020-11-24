@@ -16,6 +16,7 @@ std::string PLAYER_NAME; // The name of the player
 //==============================================================================
 
 // Initial hand shake. Get the status of the players in the room and return the id to be used for this client
+// Returns -1 on failure
 unsigned int getWorldState(std::unordered_map<unsigned int, Character>&);
 // Send a message to be posted to the server
 void sendMessage(std::string&);
@@ -300,11 +301,16 @@ public:
     {
         // Called once at the start, so create things here
         // TODO: Create slave thread to listen for updates from HTTP server
-        player.id = getWorldState(others);
+        int id = getWorldState(others);
+        if (id == -1) // Exit if we fail to retrieve world state from server
+        {
+            fprintf(stderr, "Failed to retrieve world state\n");
+            return false;
+        }
+        player.id = id;
         player.pos = {float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0)};
         player.currPos = player.pos;
         player.name = PLAYER_NAME;
-        sendMessage(player.name + " has joined!");
         walkSpeed = 100;
         danceSpeed = 1;
         processDelay = 0;
@@ -370,6 +376,7 @@ public:
         bounds.addVert(harv::Coord(512, 43));
         bounds.addVert(harv::Coord(432, 5));
         gameOver = false;
+        sendMessage(player.name + " has joined!");
         return true;
     }
 
@@ -506,6 +513,5 @@ int main()
     ClubBronco cb;
     if (cb.Construct(1280, 720, 1, 1))
         cb.Start();
-
     return 0;
 }
