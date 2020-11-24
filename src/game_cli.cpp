@@ -10,8 +10,13 @@
 
 std::string PLAYER_NAME; // The name of the player
 
+//==============================================================================
+// The following functions describe this game client's interaction with
+// the server
+//==============================================================================
+
 // Initial hand shake. Get the status of the players in the room and return the id to be used for this client
-unsigned int getWorldState(std::unordered_map<int, Character>&);
+unsigned int getWorldState(std::unordered_map<unsigned int, Character>&);
 // Send a message to be posted to the server
 void sendMessage(std::string&);
 // Poll the server for the latest updates to other players and the message box
@@ -25,6 +30,10 @@ void sendDancing(bool);
 // Tell the server that the player is leaving
 void sendExit();
 
+//==============================================================================
+// The game client and related structs
+//==============================================================================
+
 struct Character
 {
     static const int MAX_NAME_LENGTH = 20;
@@ -37,7 +46,7 @@ struct Character
     bool inputting; // Is the player currently inputting
     bool moving; // Is the avatar still moving to a designated position
     float moveAngle; // Current angle of rotation in move animation
-    int id; // The unique ID associated with the character
+    unsigned int id; // The unique ID associated with the character
 
     Character()
     {
@@ -283,7 +292,7 @@ private:
 
 public:
     // These variables will need to be updated by slave threads
-    std::unordered_map<int, Character> others; // List of other players
+    std::unordered_map<unsigned int, Character> others; // List of other players
     std::deque<std::string> messages; // List of messages
     bool gameOver; // Used to tell slave threads that the game has ended
 
@@ -324,6 +333,7 @@ public:
         arrowPos = {0, 0};
         arrowSpace = 5;
         mBoxPos = {20.0, float(ScreenHeight() - 290.0)};
+        input = "";
         inputBoxPos = {20.0, float(ScreenHeight() - 50.0)};
         inputPos = {inputBoxPos.x + 12, float(inputBoxPos.y + inputBox->height / 2.0 - 3)};
         messagePos = {mBoxPos.x + 12, mBoxPos.y + 12};
@@ -360,17 +370,6 @@ public:
         bounds.addVert(harv::Coord(512, 43));
         bounds.addVert(harv::Coord(432, 5));
         gameOver = false;
-        // TODO: For testing
-        input = "";
-        for (unsigned int i = 0; i < 5; ++i)
-        {
-            Character p;
-            p.pos = { float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0) };
-            p.pos.x += rand() % 100;
-            p.pos.y += rand() % 100;
-            p.currPos = p.pos;
-            others.insert(std::pair(i, p));
-        }
         return true;
     }
 
