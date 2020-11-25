@@ -5,8 +5,12 @@
 #include <deque>
 #include <string>
 #include <unordered_map>
+#include <thread>
+#include <chrono>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 #include "Polygon.h"
+
+#define POLL_RATE 17 // Rate in milliseconds at which to poll the server
 
 std::string PLAYER_NAME; // The name of the player
 
@@ -21,7 +25,7 @@ int getWorldState(std::unordered_map<unsigned int, Character>&);
 // Send a message to be posted to the server
 void sendMessage(std::string&);
 // Poll the server for the latest updates to other players and the message box
-void pollState(std::unordered_map<int, Character>&, std::deque<std::string>&);
+void pollState(std::unordered_map<unsigned int, Character>&, std::deque<std::string>&);
 // Tell the server to update the player's position
 void sendMovement(float, float);
 // Tell the server that the player is inputting
@@ -130,7 +134,14 @@ private:
     double globalTimer; // Total amount of time passed in seconds
     harv::Polygon bounds; // Polygonal boundary of the walkable area
     harv::Polygon rectBounds; // Rectilinear approximation of the walkable area to reduce computational complexity
-    
+    std::thread poller; // Thread to continuously poll the server
+public:
+    // These variables will need to be updated by slave threads
+    std::unordered_map<unsigned int, Character> others; // List of other players
+    std::deque<std::string> messages; // List of messages
+    bool gameOver; // Used to tell slave threads that the game has ended
+
+private:    
     char processAlnum() // Process an textual keystroke as character input
     {
         char c = 0;
@@ -291,16 +302,21 @@ private:
         return false;
     }
 
-public:
-    // These variables will need to be updated by slave threads
-    std::unordered_map<unsigned int, Character> others; // List of other players
-    std::deque<std::string> messages; // List of messages
-    bool gameOver; // Used to tell slave threads that the game has ended
+    void pollServer() // Continuously poll the server to update game state
+    {
+        while (!gameOver)
+        {
+            pollState(others, messages);
+            std::this_thread::sleep_for(std::chrono::milliseconds(POLL_RATE));
+        }
+    }
 
+public:
     bool OnUserCreate() override
     {
         // Called once at the start, so create things here
-        // TODO: Create slave thread to listen for updates from HTTP server
+        poller = std::thread(&ClubBronco::pollServer, this); // Create slave thread to listen for updates from HTTP server
+        poller.detach();
         int id = getWorldState(others);
         if (id == -1) // Exit if we fail to retrieve world state from server
         {
@@ -438,8 +454,8 @@ public:
         }
         if (GetMouse(0).bPressed) // Move player on mouse click
         {
-            float x = GetMouseX();
-            float y = GetMouseY();
+            float x = GetMouseX() - playerCenter.x;
+            float y = GetMouseY() - playerCenter.y;
             // Check against the simple boundary first
             if ((x < rectBounds.v[0].x || x > rectBounds.v[2].x) || (y < rectBounds.v[0].y || y > rectBounds.v[2].y)) // If the position is outside the simple boundary
             {
@@ -465,6 +481,7 @@ public:
         for (auto &c : others) // Move and dance the other players
             moveCharacter(c.second, fElapsedTime);
         arrowPos = {float(player.currPos.x + playerCenter.x - arrow->width / 2.0), float(player.currPos.y - arrow->height - arrowSpace)};
+
         // Handle drawing
         for (auto &c : others) // Draw the other players
             drawCharacter(c.second);
