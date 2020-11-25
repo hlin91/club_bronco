@@ -21,7 +21,7 @@ int getWorldState(std::unordered_map<unsigned int, Character>&);
 // Send a message to be posted to the server
 void sendMessage(std::string&);
 // Poll the server for the latest updates to other players and the message box
-void pollState(std::unordered_map<int, Character>&, std::vector<std::string>&);
+void pollState(std::unordered_map<int, Character>&, std::deque<std::string>&);
 // Tell the server to update the player's position
 void sendMovement(float, float);
 // Tell the server that the player is inputting
