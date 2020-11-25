@@ -17,7 +17,7 @@ std::string PLAYER_NAME; // The name of the player
 
 // Initial hand shake. Get the status of the players in the room and return the id to be used for this client
 // Returns -1 on failure
-unsigned int getWorldState(std::unordered_map<unsigned int, Character>&);
+int getWorldState(std::unordered_map<unsigned int, Character>&);
 // Send a message to be posted to the server
 void sendMessage(std::string&);
 // Poll the server for the latest updates to other players and the message box
