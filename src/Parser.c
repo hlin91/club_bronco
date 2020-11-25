@@ -1,13 +1,4 @@
 /* Parsing functions for HTTP requests/responses */
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdbool.h>
-#define BUFF_MAX 1024
-
-bool parseRequest(char *, char *, char **, char *, unsigned int *);
-bool parseHeader(char *, char *, char *);
-bool parseResponse(char *, char *, char **, char *, unsigned int *);
 
 /*
     Parse an HTTP request and extract the request line, headers, and message
