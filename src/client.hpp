@@ -30,6 +30,10 @@ public:
     Client(int p, std::string name);
     std::string build_request(std::string method, std::list<std::string> headers);
     void send_request(std::string request);
+    void sendMessage(std::string message);
+    void sendMovement(float, float);
+    void sendInputting(int);
+    void sendDancing(int);
     std::string pop_response();
     int run();
 };

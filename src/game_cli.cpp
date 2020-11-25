@@ -25,9 +25,9 @@ void pollState(std::unordered_map<int, Character>&, std::vector<std::string>&);
 // Tell the server to update the player's position
 void sendMovement(float, float);
 // Tell the server that the player is inputting
-void sendInputting(bool);
+void sendInputting(int);
 // Tell the server that the player is dancing
-void sendDancing(bool);
+void sendDancing(int);
 // Tell the server that the player is leaving
 void sendExit();
 

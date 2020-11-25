@@ -26,12 +26,53 @@ struct ServerCharacter
     bool dancing;
 };
 
-
-
 Client::Client(int p, std::string name)
 {
     port = p;
     client_name = name;
+}
+
+ void Client::sendMovement(float xPos,float yPos)
+{
+    std::string method = "POST";
+    std::unordered_map<std::string,std::string> headers;
+    std::string x_string = std::to_string(xPos);
+    std::string y_string = std::to_string(yPos);
+    headers["X"] = x_string;
+    headers["Y"] = y_string;
+
+    std::string request = build_request(method,headers);
+    send_request(request);
+}
+
+void Client::sendInputting(int i) {
+    std::string method = "POST";
+    std::unordered_map<std::string,std::string> headers;
+    std::string i_string = std::to_string(i);
+    headers["Inputting"] = i_string;
+
+    std::string request = build_request(method, headers);
+    send_request(request);
+}
+
+void Client::sendDancing(int d) {
+    std::string method = "POST";
+    std::unordered_map<std::string,std::string> headers;
+    std::string d_string = std::to_string(d);
+    headers["Dancing"] = d_string;
+
+    std::string request = build_request(method, headers);
+    send_request(request);
+}
+
+void Client::sendMessage(std::string message)
+{
+    std::string method = "POST";
+    std::unordered_map<std::string,std::string> headers;
+    headers["Message"] = message;
+
+    std::string request = build_request(method, headers);
+    send_request(request);
 }
 
 int Client::check_if_error(int returned_value, char *error_msg)
@@ -93,21 +134,19 @@ int Client::get_and_set_id() {
     bzero(&r_message,sizeof(r_message));
 }
 
-std::string Client::build_request(std::string method, std::list<std::string> headers) // argument list for class template "std::unordered_map" is missing
+std::string Client::build_request(std::string method, std::unordered_map<std::string, std::string> headers)
 { 
-    std::list<std::string>::const_iterator it;
 
     std::string request = "";
     request += (method + " / HTTP/1.1\n");
 
     request += "ID: " + client_id;
     request += "Name: " + client_name;
-    for (it = headers.begin(); it != headers.end(); ++it) // identifier "header" is undefined
+    for (auto it = headers.begin(); it != headers.end(); it++) // identifier "header" is undefined
     {
-        request += it->c_str();
+        request += it->first->c_str();
         request += ": ";
-        ++it;
-        request += it->c_str();
+        request += it->second->c_str();
         request += "\n";
     }
     return request;
