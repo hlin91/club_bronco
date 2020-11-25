@@ -45,7 +45,7 @@ Client::Client(int p, std::string name)
     send_request(request);
 }
 
-void Client::sendInputting(int i) {
+void Client::sendInputting(bool i) {
     std::string method = "POST";
     std::unordered_map<std::string,std::string> headers;
     std::string i_string = std::to_string(i);
@@ -55,7 +55,7 @@ void Client::sendInputting(int i) {
     send_request(request);
 }
 
-void Client::sendDancing(int d) {
+void Client::sendDancing(bool d) {
     std::string method = "POST";
     std::unordered_map<std::string,std::string> headers;
     std::string d_string = std::to_string(d);
