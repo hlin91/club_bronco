@@ -13,32 +13,56 @@
 #include <string>
 #include <mutex>
 #include "client.hpp"
-#include "game_cli.cpp"
 #include <chrono>
+#include <unordered_map>
 
 #define SA struct sockaddr
 
-Client::Client(int p, std::string name)
+Client::Client(int p, std::string n)
 {
-    port = p;
-    client_name = name;
-
+    Client::port = p;
+    Client::name = n;
 }
 
-std::unordered_map<std::string,std::string> getDefaultHeaders() {
+std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
+{
     std::unordered_map<std::string,std::string> headers;
-    headers["id"] = client_id;
-    headers["name"] = client_name;
+    headers["id"] = Client::getId();
+    headers["name"] = Client::getName();
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_c);
     return headers;
 }
 
+void Client::sendInitial(float xPos = 0, float yPos = 0, bool isDancing = false, bool isInputting = false)
+{
+    std::string method = "POST";
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
+
+    std::string x_string = std::to_string(xPos);
+    std::string y_string = std::to_string(yPos);
+    headers["xPos"] = x_string;
+    headers["yPos"] = y_string;
+
+    std::string i_string = std::to_string(isInputting);
+    headers["inputting"] = i_string;
+
+    std::string d_string = std::to_string(isDancing);
+    headers["dancing"] = d_string;
+
+    std::string request = build_request(method,headers);
+    send_request(request);
+}
+
 void Client::sendMovement(float xPos,float yPos)
 {
     std::string method = "POST";
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
+
+    std::string x_string = std::to_string(xPos);
+    std::string y_string = std::to_string(yPos);
+
     headers["xPos"] = x_string;
     headers["yPos"] = y_string;
 
@@ -127,11 +151,22 @@ void Client::receive_response()
     }
 }
 
+void Client::setId(std::string i) {
+    Client::id = i;
+}
+
+std::string Client::getName() {
+    return name;
+}
+
+std::string Client::getId() {
+    return id;
+}
+
 int Client::get_and_set_id() {
-    send_request(client_name);
+    send_request(Client::name);
     recv(sock,r_message,sizeof(r_message,0),0);
-    std::string id_num(r_message);
-    client_id = std::stoi (r_message, nullptr);
+    Client::setId(std::string(r_message));
     bzero(&r_message,sizeof(r_message));
 }
 
@@ -143,9 +178,9 @@ std::string Client::build_request(std::string method, std::unordered_map<std::st
 
     for (auto it = headers.begin(); it != headers.end(); it++) // identifier "header" is undefined
     {
-        request += it->first->c_str();
+        request += (it->first).c_str();
         request += ":";
-        request += it->second->c_str();
+        request += (it->second).c_str();
         request += "\n";
     }
     return request;
@@ -180,7 +215,7 @@ int Client::run()
 {
     create_server_socket();
     get_and_set_id();
-    std::cout << "My id is: " + client_id << std::endl;
+    std::cout << "My id is: " + Client::id << std::endl;
     thread_receive = std::thread(&Client::receive_response, this);
     thread_receive.detach();
     return 0;

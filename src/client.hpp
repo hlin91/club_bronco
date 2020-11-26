@@ -4,7 +4,7 @@
 #include <thread>
 #include <string>
 #include <mutex>
-#include "game_cli.cpp"
+#include <unordered_map>
 
 class Client
 {
@@ -19,24 +19,28 @@ private:
     bool open_for_receiving = true;
     int port = 4310;
     std::thread thread_receive;
-    
-    ServerCharacter myChar;
-
 
     int check_if_error(int returned_value, char *error_msg);
     void create_server_socket();
     void receive_response();
     int get_and_set_id();
 
+    std::string name;
+    std::string id;
+
 public:
-    Client(int p, std::string name);
-    std::unordered_map<std::string,std::string> getDefaultHeaders()
-    std::string build_request(std::string method, std::list<std::string> headers);
+    Client(int p, std::string n);
+    void setId(std::string i);
+    std::string getName();
+    std::string getId();
+    std::unordered_map<std::string,std::string> getDefaultHeaders();
+    std::string build_request(std::string method, std::unordered_map<std::string, std::string> headers);
     void send_request(std::string request);
     void sendMessage(std::string message);
     void sendMovement(float, float);
-    void sendInputting(int);
-    void sendDancing(int);
+    void sendInputting(bool);
+    void sendDancing(bool);
+    void sendInitial(float,float,bool,bool);
     std::string pop_response();
     int run();
     void sendExit();

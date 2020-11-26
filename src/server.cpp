@@ -12,14 +12,18 @@
 #include <vector>
 #include <thread>
 #include <unordered_map>
-#include "game_cli.cpp"
-#include "olcPixelGameEngine/olcPixelGameEngine.h"
 
 #define SA struct sockaddr
 
 using namespace std;
 
-static std::unordered_map<int, Character> world_state;
+/*
+    The characters are represented almost entirely like headers, and the outside
+    unordered_map exists for quick checking if a user exists in the world.
+*/
+std::unordered_map<std::string, std::unordered_map<std::string,std::string> world_state;
+
+std::mutex world_state_mutex;
 
 static int num_clients = 0;
 
@@ -86,7 +90,7 @@ void handle_client(int client_ptr)
     char request[BUFSIZ + 1];
     bzero(request, sizeof(request));
     int bytes_read = recv(client_id,request,sizeof(request),0);
-    std::string name = std::string str(request);
+    std::string name = std::string(request);
     bzero(request, sizeof(request));
 
     //Write to this client only and give them their client_id;
@@ -95,8 +99,10 @@ void handle_client(int client_ptr)
     int rc;
     rc = write(client_id,client_id_to_send,client_id_size);
 
-    //Create this character
-    //Send them the world state
+    //Create this "character" AKA an unordered map
+
+    //Send them all the "characters"
+
     //Add them to the world
 
     std::string reqString;
@@ -111,13 +117,13 @@ void handle_client(int client_ptr)
         bzero(response,sizeof(response));
         int bytes_written = 0;
         process_request(request);
-        reqString = std::string str(request);
+        reqString = std::string(request);
         for (const auto& c : clients)
         {
             bytes_written = write( c, response, sizeof(response) );
         }
     }
-    close(client);
+    close(client_id);
 }
 
 void process_request(char* request)
@@ -131,9 +137,9 @@ void process_request(char* request)
     for (int i = 0; i < numHeaders; i++) {
         char *key;
         char *value;
-        parseHeader(headers,key,value);
+        parseHeader(headers[i],key,value);
         //Add each header name and value into the unordered_map
-        key_and_values.insert(std::make_pair(std::string s(key), std::string s(value)));
+        key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
     //Key and values should now hold all the "important" values of the character that was sent
     updateOrAddUser(key_and_values);
@@ -142,7 +148,7 @@ void process_request(char* request)
 void updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)
 {
     std::string charId = key_and_values["id"];
-    if (world_state.find(id) == m.end()) {
+    if (world_state.find(charId) == world_state.end()) {
         addUser(key_and_values);
     }
     else {
@@ -152,7 +158,7 @@ void updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)
 
 void addUser(std::unordered_map<std::string,std::string> key_and_values)
 {
-
+    world_state.insert(key_and_values["id"],key_and_values);
 }
 
 /*
@@ -167,9 +173,8 @@ bool inMap(std::unordered_map<std::string,std::string> key_and_values, std::stri
 
 void updateUser(std::unordered_map<std::string,std::string> key_and_values)
 {
-    std::string charId = key_and_values.at("id");
-    //Get the user to be updated
-    Character myChar = world_state[charId];
+    //This is the user that is going to be updated
+    std::unordered_map<std::string,std::string> user = world_state.at(key_and_values.at("id"));
 
     std::string dancing = "dancing";
     std::string inputting = "inputting";
@@ -184,27 +189,23 @@ void updateUser(std::unordered_map<std::string,std::string> key_and_values)
 
     if (inMap(key_and_values,dancing)) {
         dancing = key_and_values[dancing];
-        istringstream(dancing) >> isDancing;
+        user["dancing"] = dancing;
     }
 
     if (inMap(key_and_values,inputting)) {
         inputting = key_and_values[inputting];
-        istringstream(inputting) >> isInputting;
+        user["inputting"] = inputting;
     }
 
     if (inMap(key_and_values,x)) {
         x = key_and_values[x];
-        xInt = std::stoi (x,nullptr);
+        user["xPos"] = x;
     }
 
     if (inMap(key_and_values,y)) {
         y = key_and_values[y];
-        yInt = std::stoi(y,nullptr);
+        user["yPos"] = y;
     }
-    
-
-
-
 }
 
 int main()

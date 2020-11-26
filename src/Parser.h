@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <Parser.c>
+#include "Parser.c"
 #define BUFF_MAX 1024
 
 /*
