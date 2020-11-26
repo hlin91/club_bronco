@@ -13,33 +13,34 @@
 #include <string>
 #include <mutex>
 #include "client.hpp"
+#include "game_cli.cpp"
+#include <chrono>
 
 #define SA struct sockaddr
-
-struct ServerCharacter
-{
-    int id = -1;
-    std::string name; //Name of character;
-    int xpos; //x position of the character;
-    int ypos;
-    bool inputting;
-    bool dancing;
-};
 
 Client::Client(int p, std::string name)
 {
     port = p;
     client_name = name;
+
 }
 
- void Client::sendMovement(float xPos,float yPos)
+std::unordered_map<std::string,std::string> getDefaultHeaders() {
+    std::unordered_map<std::string,std::string> headers;
+    headers["id"] = client_id;
+    headers["name"] = client_name;
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_c);
+    return headers;
+}
+
+void Client::sendMovement(float xPos,float yPos)
 {
     std::string method = "POST";
-    std::unordered_map<std::string,std::string> headers;
-    std::string x_string = std::to_string(xPos);
-    std::string y_string = std::to_string(yPos);
-    headers["X"] = x_string;
-    headers["Y"] = y_string;
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
+    headers["xPos"] = x_string;
+    headers["yPos"] = y_string;
 
     std::string request = build_request(method,headers);
     send_request(request);
@@ -49,7 +50,7 @@ void Client::sendInputting(bool i) {
     std::string method = "POST";
     std::unordered_map<std::string,std::string> headers;
     std::string i_string = std::to_string(i);
-    headers["Inputting"] = i_string;
+    headers["inputting"] = i_string;
 
     std::string request = build_request(method, headers);
     send_request(request);
@@ -57,9 +58,9 @@ void Client::sendInputting(bool i) {
 
 void Client::sendDancing(bool d) {
     std::string method = "POST";
-    std::unordered_map<std::string,std::string> headers;
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     std::string d_string = std::to_string(d);
-    headers["Dancing"] = d_string;
+    headers["dancing"] = d_string;
 
     std::string request = build_request(method, headers);
     send_request(request);
@@ -68,9 +69,8 @@ void Client::sendDancing(bool d) {
 void Client::sendMessage(std::string message)
 {
     std::string method = "POST";
-    std::unordered_map<std::string,std::string> headers;
-    headers["Message"] = message;
-
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
+    headers["message"] = message;
     std::string request = build_request(method, headers);
     send_request(request);
 }
@@ -128,6 +128,7 @@ void Client::receive_response()
 }
 
 int Client::get_and_set_id() {
+    send_request(client_name);
     recv(sock,r_message,sizeof(r_message,0),0);
     std::string id_num(r_message);
     client_id = std::stoi (r_message, nullptr);
@@ -140,12 +141,10 @@ std::string Client::build_request(std::string method, std::unordered_map<std::st
     std::string request = "";
     request += (method + " / HTTP/1.1\n");
 
-    request += "ID: " + client_id;
-    request += "Name: " + client_name;
     for (auto it = headers.begin(); it != headers.end(); it++) // identifier "header" is undefined
     {
         request += it->first->c_str();
-        request += ": ";
+        request += ":";
         request += it->second->c_str();
         request += "\n";
     }

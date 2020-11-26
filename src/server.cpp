@@ -8,26 +8,18 @@
 #include <pthread.h>
 #include <list>
 #include <iterator>
-#include "Parser.c"
+#include "Parser.h"
 #include <vector>
 #include <thread>
 #include <unordered_map>
+#include "game_cli.cpp"
+#include "olcPixelGameEngine/olcPixelGameEngine.h"
 
 #define SA struct sockaddr
 
 using namespace std;
 
-struct ServerCharacter
-{
-    int id = -1;
-    std::string name; //Name of character;
-    int xpos; //x position of the character;
-    int ypos;
-    bool inputting;
-    bool dancing;
-};
-
-static std::unordered_map<int, ServerCharacter> world_state;
+static std::unordered_map<int, Character> world_state;
 
 static int num_clients = 0;
 
@@ -88,8 +80,14 @@ void handle_client(int client_ptr)
 {
 
     cout << "Handling client " << client_ptr << endl;
-
     int client_id = client_ptr;
+
+    //Receive from the client their name
+    char request[BUFSIZ + 1];
+    bzero(request, sizeof(request));
+    int bytes_read = recv(client_id,request,sizeof(request),0);
+    std::string name = std::string str(request);
+    bzero(request, sizeof(request));
 
     //Write to this client only and give them their client_id;
     char *client_id_to_send = (char*)&client_id;
@@ -97,19 +95,23 @@ void handle_client(int client_ptr)
     int rc;
     rc = write(client_id,client_id_to_send,client_id_size);
 
+    //Create this character
+    //Send them the world state
+    //Add them to the world
+
+    std::string reqString;
+
     //Request from the client
     while (1) {
-        char request[BUFSIZ + 1];
         bzero(request, sizeof(request));
-        int bytes_read = recv(client_id, request, sizeof(request), 0);
+        bytes_read = recv(client_id, request, sizeof(request), 0);
         check_if_error(bytes_read, "Error reading from client");
         
         char response[BUFSIZ +1];
         bzero(response,sizeof(response));
         int bytes_written = 0;
-        strcat(response, "client: ");
-        strcat(response, request);
         process_request(request);
+        reqString = std::string str(request);
         for (const auto& c : clients)
         {
             bytes_written = write( c, response, sizeof(response) );
@@ -118,12 +120,90 @@ void handle_client(int client_ptr)
     close(client);
 }
 
-std::string process_request(char* request)
+void process_request(char* request)
 {
     char *req;
     char **headers;
     char *message;
     unsigned int numHeaders = 0;
+    parseRequest(request,req,headers,message,numHeaders);
+    std::unordered_map<std::string,std::string> key_and_values;
+    for (int i = 0; i < numHeaders; i++) {
+        char *key;
+        char *value;
+        parseHeader(headers,key,value);
+        //Add each header name and value into the unordered_map
+        key_and_values.insert(std::make_pair(std::string s(key), std::string s(value)));
+    }
+    //Key and values should now hold all the "important" values of the character that was sent
+    updateOrAddUser(key_and_values);
+}
+
+void updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)
+{
+    std::string charId = key_and_values["id"];
+    if (world_state.find(id) == m.end()) {
+        addUser(key_and_values);
+    }
+    else {
+        updateUser(key_and_values);
+    }
+}
+
+void addUser(std::unordered_map<std::string,std::string> key_and_values)
+{
+
+}
+
+/*
+    Function to determine if a given parameter is in this map made by the user
+*/
+bool inMap(std::unordered_map<std::string,std::string> key_and_values, std::string key) {
+    if (key_and_values.find(key) == m.end()) {
+        return false;
+    }
+    return true;
+}
+
+void updateUser(std::unordered_map<std::string,std::string> key_and_values)
+{
+    std::string charId = key_and_values.at("id");
+    //Get the user to be updated
+    Character myChar = world_state[charId];
+
+    std::string dancing = "dancing";
+    std::string inputting = "inputting";
+    std::string x = "xPos";
+    std::string y = "yPos";
+
+    bool isDancing;
+    bool isInputting;
+
+    int xInt;
+    int yInt;
+
+    if (inMap(key_and_values,dancing)) {
+        dancing = key_and_values[dancing];
+        istringstream(dancing) >> isDancing;
+    }
+
+    if (inMap(key_and_values,inputting)) {
+        inputting = key_and_values[inputting];
+        istringstream(inputting) >> isInputting;
+    }
+
+    if (inMap(key_and_values,x)) {
+        x = key_and_values[x];
+        xInt = std::stoi (x,nullptr);
+    }
+
+    if (inMap(key_and_values,y)) {
+        y = key_and_values[y];
+        yInt = std::stoi(y,nullptr);
+    }
+    
+
+
 
 }
 
