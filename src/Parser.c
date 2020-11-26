@@ -1,4 +1,5 @@
 /* Parsing functions for HTTP requests/responses */
+#include "Parser.h"
 
 /*
     Parse an HTTP request and extract the request line, headers, and message
