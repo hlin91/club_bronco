@@ -32,6 +32,7 @@ std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_c);
+    //TODO: account for timestamp
     return headers;
 }
 
@@ -225,4 +226,5 @@ int main()
 {
     Client myClient(4310, "Johnny");
     myClient.run();
+    myClient.sendInitial();
 }

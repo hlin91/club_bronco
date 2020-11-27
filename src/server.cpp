@@ -13,6 +13,7 @@
 #include <thread>
 #include <unordered_map>
 #include <mutex>
+#include "server.hpp"
 
 #define SA struct sockaddr
 
@@ -20,20 +21,18 @@
     The characters are represented almost entirely like headers, and the outside
     unordered_map exists for quick checking if a user exists in the world.
 */
-std::unordered_map<std::string, std::unordered_map<std::string,std::string>> world_state;
-static int num_clients = 0;
 
-int check_if_error(int returned_value, char *error_msg)
+int Server::check_if_error(int returned_value, std::string error_msg)
 {
     if (returned_value < 0)
     {
-        perror(error_msg);
+        perror(error_msg.c_str());
         exit(EXIT_FAILURE);
     }
     return returned_value;
 }
 
-int create_server_socket(int port)
+int Server::create_server_socket(int port)
 {
 
     struct sockaddr_in server_address;
@@ -49,7 +48,7 @@ int create_server_socket(int port)
     int sock = socket(AF_INET, SOCK_STREAM, 0);
 
     //Check for error with socket
-    check_if_error(sock, "Error with socket");
+    Server::check_if_error(sock, "Error with socket");
 
     // Binding newly created socket to given IP and verification 
     if ((bind(sock, (SA*)&server_address, sizeof(server_address))) != 0) { 
@@ -57,17 +56,17 @@ int create_server_socket(int port)
         exit(0); 
     } 
 
-    check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)), "setsockopt");
+    Server::check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)), "setsockopt");
 
     // Attempt to make the socket (fd) a listening type socket
-    check_if_error(listen(sock, 10), "Could not make the socket a listening type socket");
+    Server::check_if_error(listen(sock, 10), "Could not make the socket a listening type socket");
 
     std::cout << "Listening for requests on port " << port << std::endl;
 
     return sock;
 }
 
-void addUser(std::unordered_map<std::string,std::string> key_and_values)
+void Server::addUser(std::unordered_map<std::string,std::string> key_and_values)
 {
     world_state.insert(std::make_pair(key_and_values["id"],key_and_values));
 }
@@ -75,18 +74,19 @@ void addUser(std::unordered_map<std::string,std::string> key_and_values)
 /*
     Function to determine if a given parameter is in this map made by the user
 */
-bool inMap(std::unordered_map<std::string,std::string> key_and_values, std::string key) {
+bool Server::inMap(std::unordered_map<std::string,std::string> key_and_values, std::string key) {
     if (key_and_values.find(key) == key_and_values.end()) {
         return false;
     }
     return true;
 }
 
-void updateUser(std::unordered_map<std::string,std::string> key_and_values)
+void Server::updateUser(std::unordered_map<std::string,std::string> key_and_values)
 {
     //This is the user that is going to be updated
     std::unordered_map<std::string,std::string> user = world_state.at(key_and_values.at("id"));
 
+    //For checking if the appropriate key is in the updating data
     std::string dancing = "dancing";
     std::string inputting = "inputting";
     std::string x = "xPos";
@@ -98,39 +98,48 @@ void updateUser(std::unordered_map<std::string,std::string> key_and_values)
     int xInt;
     int yInt;
 
-    if (inMap(key_and_values,dancing)) {
+    if (Server::inMap(key_and_values,dancing)) {
         dancing = key_and_values[dancing];
         user["dancing"] = dancing;
     }
 
-    if (inMap(key_and_values,inputting)) {
+    if (Server::inMap(key_and_values,inputting)) {
         inputting = key_and_values[inputting];
         user["inputting"] = inputting;
     }
 
-    if (inMap(key_and_values,x)) {
+    if (Server::inMap(key_and_values,x)) {
         x = key_and_values[x];
         user["xPos"] = x;
     }
 
-    if (inMap(key_and_values,y)) {
+    if (Server::inMap(key_and_values,y)) {
         y = key_and_values[y];
         user["yPos"] = y;
     }
 }
 
-void updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)
+void Server::updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)
 {
     std::string charId = key_and_values["id"];
     if (world_state.find(charId) == world_state.end()) {
-        addUser(key_and_values);
+        Server::addUser(key_and_values);
     }
     else {
-        updateUser(key_and_values);
+        Server::updateUser(key_and_values);
     }
 }
 
-void process_request(char* request)
+void Server::echo_message_to_world(char* request) {
+    int bytes_written = 0;
+    //TODO: should the client that made this message request also receive it from
+    //The server?
+    for (auto c : world_state) {
+        bytes_written = write(std::stoi(c.first,nullptr), request, sizeof(request));
+    }
+}
+
+void Server::process_request(char* request)
 {
     char *req;
     char **headers;
@@ -146,16 +155,35 @@ void process_request(char* request)
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
     //Key and values should now hold all the "important" values of the character that was sent
-    updateOrAddUser(key_and_values);
+    if (key_and_values.find("message") != key_and_values.end()) {
+        //This is a message! Process it as such
+        Server::echo_message_to_world(request);
+    }
+    else {
+        Server::updateOrAddUser(key_and_values);
+    }
 }
 
-void handle_client(int client_ptr)
+void Server::send_world_state(int client_id) {
+
+    std::string user_serialization;
+    for (auto kv : world_state) {
+        //Build a post request for the client wherein the info is a user from the world_state
+        //TODO: should clients be receiving information about their own positioning?
+        //If not, then do a quick check on kv.first to make sure that it is not equal to the
+        //client id.
+        user_serialization = Server::build_request("POST",kv.second);
+        write(client_id,user_serialization.c_str(),sizeof(user_serialization.c_str()));
+    }
+}
+
+void Server::handle_client(int client_ptr)
 {
 
     std::cout << "Handling client " << client_ptr << std::endl;
     int client_id = client_ptr;
 
-    //Receive from the client their name
+    //Receive from the client their name: That will be the first thing sent
     char request[BUFSIZ + 1];
     bzero(request, sizeof(request));
     int bytes_read = recv(client_id,request,sizeof(request),0);
@@ -168,11 +196,19 @@ void handle_client(int client_ptr)
     int rc;
     rc = write(client_id,client_id_to_send,client_id_size);
 
-    //Create this "character" AKA an unordered map
-
     //Send them all the "characters"
+    Server::send_world_state(client_id);
 
-    //Add them to the world
+    //Create this user and add them to the map
+    std::unordered_map<std::string, std::string> user_map;
+    user_map["name"] = name;
+    user_map["id"] = std::to_string(client_id);
+    user_map["xPos"] = "0";
+    user_map["yPos"] = "0";
+    user_map["dancing"] = "0";
+    user_map["inputting"] = "0";
+
+    world_state.insert(std::make_pair(std::to_string(client_id),user_map));
 
     std::string reqString;
 
@@ -185,31 +221,52 @@ void handle_client(int client_ptr)
         char response[BUFSIZ +1];
         bzero(response,sizeof(response));
         int bytes_written = 0;
-        process_request(request);
+        Server::process_request(request);
         reqString = std::string(request);
-        for (auto c : world_state)
-        {
-            bytes_written = write( std::stoi(c.first,nullptr), response, sizeof(response) );
-        }
     }
     close(client_id);
 }
 
-int main()
+std::string Server::build_request(std::string method, std::unordered_map<std::string, std::string> headers)
+{ 
+
+    std::string request = "";
+    request += (method + " / HTTP/1.1\n");
+
+    for (auto it = headers.begin(); it != headers.end(); it++) // identifier "header" is undefined
+    {
+        request += (it->first).c_str();
+        request += ":";
+        request += (it->second).c_str();
+        request += "\n";
+    }
+    return request;
+}
+
+Server::Server(int p)
 {
-    int port = 4310;
-    int socket;
-    socket = create_server_socket(port);
+    Server::port = p;
+}
+
+int Server::run()
+{
+    servSock = Server::create_server_socket(port);
     int client;
 
     while (true) {
-        client = accept(socket, (struct sockaddr *)NULL, NULL);
+        client = accept(servSock, (struct sockaddr *)NULL, NULL);
         std::cout << "Connected to client!" << std::endl;
         
         std::thread tid;
-        tid = std::thread(handle_client,std::ref(client));
+        tid = std::thread(&Server::handle_client,this,std::ref(client));
         tid.detach();
     }
 
     return 0;
+}
+
+int main() 
+{
+    Server myServer(4310);
+    myServer.run();
 }
