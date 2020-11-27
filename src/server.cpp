@@ -139,13 +139,20 @@ void Server::echo_message_to_world(char* request) {
     }
 }
 
-void Server::process_request(char* request)
+void Server::process_request(char* request, int client_id)
 {
     char *req;
     char **headers;
     char *message;
     unsigned int numHeaders = 0;
     parseRequest(request,req,headers,message,&numHeaders);
+
+    //TODO: what if the user just wants the current world state?
+    if (true) {
+        send_world_state(client_id);
+        return;
+    }
+
     std::unordered_map<std::string,std::string> key_and_values;
     for (int i = 0; i < numHeaders; i++) {
         char *key;
@@ -221,7 +228,7 @@ void Server::handle_client(int client_ptr)
         char response[BUFSIZ +1];
         bzero(response,sizeof(response));
         int bytes_written = 0;
-        Server::process_request(request);
+        Server::process_request(request, client_id);
         reqString = std::string(request);
     }
     close(client_id);
