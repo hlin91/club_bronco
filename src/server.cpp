@@ -147,8 +147,8 @@ void Server::process_request(char* request, int client_id)
     unsigned int numHeaders = 0;
     parseRequest(request,req,headers,message,&numHeaders);
 
-    //TODO: what if the user just wants the current world state?
-    if (true) {
+    //Maybe the user only wants the world state?
+    if (std::string(req).find("GET") != std::string::npos) {
         send_world_state(client_id);
         return;
     }
@@ -172,7 +172,7 @@ void Server::process_request(char* request, int client_id)
 }
 
 void Server::send_world_state(int client_id) {
-
+    std::cout << "sending world state to client " << client_id << std::endl;
     std::string user_serialization;
     for (auto kv : world_state) {
         //Build a post request for the client wherein the info is a user from the world_state
@@ -195,13 +195,14 @@ void Server::handle_client(int client_ptr)
     bzero(request, sizeof(request));
     int bytes_read = recv(client_id,request,sizeof(request),0);
     std::string name = std::string(request);
+    std::cout << "Client name: " << name << std::endl;
     bzero(request, sizeof(request));
 
     //Write to this client only and give them their client_id;
-    char *client_id_to_send = (char*)&client_id;
-    int client_id_size = sizeof(client_id);
+    std::string client_id_str = std::to_string(client_id);
     int rc;
-    rc = write(client_id,client_id_to_send,client_id_size);
+    std::cout << "Sending id to " << name << std::endl;
+    rc = write(client_id,client_id_str.c_str(),sizeof(client_id_str.c_str()));
 
     //Send them all the "characters"
     Server::send_world_state(client_id);
@@ -247,6 +248,7 @@ std::string Server::build_request(std::string method, std::unordered_map<std::st
         request += (it->second).c_str();
         request += "\n";
     }
+    std::cout << request;
     return request;
 }
 

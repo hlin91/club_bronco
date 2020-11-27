@@ -4,6 +4,7 @@
 #include <thread>
 #include <string>
 #include <mutex>
+#include <deque>
 #include <unordered_map>
 
 class Client
@@ -12,7 +13,7 @@ class Client
 private:
     char s_message[2048];
     std::mutex response_queue_mutex;
-    std::list<std::string> response_queue;
+    std::deque<std::string> response_queue;
     char r_message[2048];
     int sock;
     bool open_for_sending = true;
@@ -35,10 +36,10 @@ public:
     std::string getId();
     std::string build_request(std::string method, std::unordered_map<std::string, std::string> headers);
     void send_request(std::string request);
-    
+
     std::unordered_map<std::string,std::string> getDefaultHeaders();
-    void pollState(std::unordered_map<unsigned int, Character>&, std::deque<std::string>&);
-    int getWorldState(std::unordered_map<unsigned int, Character>&);
+    //void pollState(std::unordered_map<unsigned int, Character>&, std::deque<std::string>&);
+    //int getWorldState(std::unordered_map<unsigned int, Character>&);
     void sendMessage(std::string message);
     void sendMovement(float, float);
     void sendInputting(bool);

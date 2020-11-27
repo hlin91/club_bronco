@@ -138,11 +138,15 @@ void Client::receive_response()
     while (open_for_receiving)
     {
         recv(sock,r_message,sizeof(r_message),0);
+        
         if (r_message[0] == '\0') {
+            bzero(&r_message,sizeof(r_message));
             continue;
         }
         else
         {
+            std::cout << "getting info from server..." << std::endl;
+            std::cout << r_message << std::endl;
             response_queue_mutex.lock();
             response_queue.push_back(r_message);
             response_queue_mutex.unlock();
@@ -165,8 +169,10 @@ std::string Client::getId() {
 }
 
 int Client::get_and_set_id() {
+    std::cout << "sending name to server" << std::endl;
     send_request(Client::name);
-    recv(sock,r_message,sizeof(r_message,0),0);
+    std::cout << "receiving id from server" << std::endl;
+    recv(sock,r_message,sizeof(r_message),0);
     Client::setId(std::string(r_message));
     bzero(&r_message,sizeof(r_message));
 }
@@ -192,16 +198,20 @@ void Client::send_request(std::string request)
     char c_request[2048];
     strcpy(c_request, request.c_str());
     send(sock,c_request,strlen(c_request), 0);
+
 }
 
 std::string Client::pop_response()
 {   
-    std::string oldest_response;
+    std::string oldest_response = "";
 
     response_queue_mutex.lock();
 
-    oldest_response.assign(response_queue.front());
-    response_queue.pop_front();
+    if (!response_queue.empty())
+    {
+        oldest_response = response_queue.front();
+        response_queue.pop_front();
+    }
 
     response_queue_mutex.unlock();
     return oldest_response;
@@ -219,6 +229,10 @@ int Client::run()
     std::cout << "My id is: " + Client::id << std::endl;
     thread_receive = std::thread(&Client::receive_response, this);
     thread_receive.detach();
+    while (true)
+    {
+        std::cout << Client::pop_response();
+    }
     return 0;
 }
 
@@ -226,5 +240,5 @@ int main()
 {
     Client myClient(4310, "Johnny");
     myClient.run();
-    myClient.sendInitial();
+    //myClient.sendInitial();
 }
