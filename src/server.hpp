@@ -17,6 +17,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include "game_cli.cpp"
 
 class Server
 {   

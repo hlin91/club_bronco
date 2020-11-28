@@ -13,6 +13,7 @@
 #include <string>
 #include <mutex>
 #include "client.hpp"
+#include "Parser.h"
 #include <chrono>
 #include <unordered_map>
 
@@ -34,6 +35,70 @@ std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
     std::tm now_tm = *std::localtime(&now_c);
     //TODO: account for timestamp
     return headers;
+}
+
+/*
+    NOTE: This function is only called after a successful handshake,
+    hence the popping that takes place without a server request.
+*/
+int Client::getWorldState(std::unordered_map<unsigned int, Character>& game_cli_chars) {
+
+    std::string response;
+    std::unordered_map<std::string,std::string> response_headers;
+    //Process the entire queue
+    while ((resp = Client::pop_response()).compare("") != 0) {
+        response_headers = Client::processResponse(resp);
+        executeResponse(&game_cli_chars,&response_headers);
+    }
+    return Client::getId();
+}
+
+void Client::pollState(std::unordered_map<unsigned int, Character>& others, std::deque<std::string>& messages)
+{
+
+}
+
+void Client::executeResponse(std::unordered_map<unsigned int, Character>& game_cli_chars, std::unordered_map<std::string,std::string>& response_headers)
+{
+    //Check if this user exists
+    if (game_cli_chars.find(std::stoi(response_headers["id"])) == game_cli_chars.end())
+    {
+        //Character doesn't exist, so add them!
+    }
+    else
+    {
+        //Character does exist, so move them or make them start dancing or something
+    }
+}
+
+void Client::updateCharacter(Character& c, std::unordered_map<std::string,std::string> response_headers)
+{
+
+}
+
+void Client::addCharacter(Character& c, std::unordered_map<std::string,std::string> response_headers)
+{
+
+}
+
+/*
+    Function to demodulate a string response into its headers
+*/
+std::unordered_map<std::string, std::string> Client::processResponse(std::string response) {
+    char req[1024];
+    char *headers[12];
+    char message[1024];
+    unsigned int numHeaders = 0;
+    parseRequest(response.c_str(),req,headers,message,&numHeaders);
+
+    std::unordered_map<std::string,std::string> key_and_values;
+    for (int i = 0; i < numHeaders; i++) {
+        char key[1024];
+        char value[1024];
+        parseHeader(headers[i],key,value);
+        key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
+    }
+    return key_and_values;
 }
 
 void Client::sendInitial(float xPos = 0, float yPos = 0, bool isDancing = false, bool isInputting = false)
@@ -97,6 +162,15 @@ void Client::sendMessage(std::string message)
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     headers["message"] = message;
     std::string request = build_request(method, headers);
+    send_request(request);
+}
+
+void Client::sendExit()
+{
+    std::string method = "POST";
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
+    headers["exit"] = "true";
+    std::string request = build_request(method,headers);
     send_request(request);
 }
 
@@ -230,19 +304,12 @@ int Client::run()
     std::cout << "My id is: " + Client::id << std::endl;
     thread_receive = std::thread(&Client::receive_response, this);
     thread_receive.detach();
-    std::string message_to_send;
-    while (true)
-    {
-        std::cout << "Send a message: ";
-        getline(std::cin,message_to_send);
-        Client::sendMessage(message_to_send);
-    }
     return 0;
 }
 
-int main()
-{
-    Client myClient(4310, "Johnny");
-    myClient.run();
-    //myClient.sendInitial();
-}
+// int main()
+// {
+//     Client myClient(4310, "Johnny");
+//     myClient.run();
+//     //myClient.sendInitial();
+// }

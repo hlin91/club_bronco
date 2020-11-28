@@ -95,9 +95,6 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
     bool isDancing;
     bool isInputting;
 
-    int xInt;
-    int yInt;
-
     if (Server::inMap(key_and_values,dancing)) {
         dancing = key_and_values[dancing];
         user["dancing"] = dancing;
@@ -135,7 +132,7 @@ void Server::echo_message_to_world(char* request) {
     //TODO: should the client that made this message request also receive it from
     //The server?
     for (auto c : world_state) {
-        bytes_written = write(std::stoi(c.first,nullptr), request, sizeof(request));
+        bytes_written = write(std::stoi(c.first,nullptr), request, 1024);
     }
 }
 
@@ -163,7 +160,6 @@ void Server::process_request(char* request, int client_id)
         parseHeader(headers[i],key,value);
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
-        std::cout << key << std::endl << value << std::endl;
     }
     //Key and values should now hold all the "important" values of the character that was sent
     if (key_and_values.find("message") != key_and_values.end()) {

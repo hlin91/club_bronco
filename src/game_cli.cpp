@@ -9,16 +9,21 @@
 #include <chrono>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 #include "Polygon.h"
+#include "client.hpp"
 
 #define POLL_RATE 17 // Rate in milliseconds at which to poll the server
 
 std::string PLAYER_NAME; // The name of the player
+Client myClient;
 
 //==============================================================================
 // The following functions describe this game client's interaction with
 // the server
 //==============================================================================
 
+
+//Start up the client with the port and name
+int startClient(int, std::string);
 // Initial hand shake. Get the status of the players in the room and return the id to be used for this client
 // Returns -1 on failure
 int getWorldState(std::unordered_map<unsigned int, Character>&);
@@ -34,6 +39,54 @@ void sendInputting(bool);
 void sendDancing(bool);
 // Tell the server that the player is leaving
 void sendExit();
+
+//==============================================================================
+// The following is the implementation of the functions above
+//==============================================================================
+
+int startClient(int port = 4310)
+{
+    myClient = Client(port,PLAYER_NAME);
+    myClient.run();
+}
+
+int getWorldState(std::unordered_map<unsigned int, Character>& game_cli_chars)
+{
+    startClient(4310);
+    return myClient.getWorldState(game_cli_chars);
+}
+
+void pollState(std::unordered_map<unsigned int, Character>& others, std::deque<std::string>&, messages)
+{
+    myClient.pollState(others, messages);
+}
+
+void sendMessage(std::string& msg)
+{
+    myClient.sendMessage(msg);
+}
+
+void sendMovement(float x, float y)
+{
+    myClient.sendMovement(x,y);
+}
+
+void sendInputting(bool isInputting)
+{
+    myClient.sendInputting(isInputting);
+}
+
+void sendDancing(bool isDancing)
+{
+    myClient.sendDancing(isDancing);
+}
+
+void sendExit()
+{
+    myClient.sendExit();
+}
+
+
 
 //==============================================================================
 // The game client and related structs
