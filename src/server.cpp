@@ -141,32 +141,37 @@ void Server::echo_message_to_world(char* request) {
 
 void Server::process_request(char* request, int client_id)
 {
-    char *req;
-    char **headers;
-    char *message;
+    std::cout << "processing request from client_id " << std::to_string(client_id) << std::endl;
+    char req[1024];
+    char *headers[12];
+    char message[1024];
     unsigned int numHeaders = 0;
     parseRequest(request,req,headers,message,&numHeaders);
-
+    std::cout << req << std::endl;
+    std::cout << "request has been parsed from client_id " << std::to_string(client_id) << std::endl;
     //Maybe the user only wants the world state?
     if (std::string(req).find("GET") != std::string::npos) {
+        std::cout << "Sending world state to client " << std::to_string(client_id) << std::endl;
         send_world_state(client_id);
         return;
     }
-
     std::unordered_map<std::string,std::string> key_and_values;
+
     for (int i = 0; i < numHeaders; i++) {
-        char *key;
-        char *value;
+        char key[1024];
+        char value[1024];
         parseHeader(headers[i],key,value);
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
+        std::cout << key << std::endl << value << std::endl;
     }
     //Key and values should now hold all the "important" values of the character that was sent
     if (key_and_values.find("message") != key_and_values.end()) {
-        //This is a message! Process it as such
+        std::cout << "message from " << std::to_string(client_id) << std::endl;
         Server::echo_message_to_world(request);
     }
     else {
+        std::cout << "updating client_id " << std::to_string(client_id) << std::endl;
         Server::updateOrAddUser(key_and_values);
     }
 }
@@ -180,7 +185,7 @@ void Server::send_world_state(int client_id) {
         //If not, then do a quick check on kv.first to make sure that it is not equal to the
         //client id.
         user_serialization = Server::build_request("POST",kv.second);
-        write(client_id,user_serialization.c_str(),sizeof(user_serialization.c_str()));
+        write(client_id,user_serialization.c_str(),1024);
     }
 }
 
@@ -193,7 +198,7 @@ void Server::handle_client(int client_ptr)
     //Receive from the client their name: That will be the first thing sent
     char request[BUFSIZ + 1];
     bzero(request, sizeof(request));
-    int bytes_read = recv(client_id,request,sizeof(request),0);
+    int bytes_read = recv(client_id,request,1024,0);
     std::string name = std::string(request);
     std::cout << "Client name: " << name << std::endl;
     bzero(request, sizeof(request));
@@ -202,12 +207,13 @@ void Server::handle_client(int client_ptr)
     std::string client_id_str = std::to_string(client_id);
     int rc;
     std::cout << "Sending id to " << name << std::endl;
-    rc = write(client_id,client_id_str.c_str(),sizeof(client_id_str.c_str()));
+    rc = write(client_id,client_id_str.c_str(),1024);
 
     //Send them all the "characters"
     Server::send_world_state(client_id);
 
     //Create this user and add them to the map
+    std::cout << "adding client_id " << std::to_string(client_id) << " to world" << std::endl;
     std::unordered_map<std::string, std::string> user_map;
     user_map["name"] = name;
     user_map["id"] = std::to_string(client_id);
@@ -218,19 +224,14 @@ void Server::handle_client(int client_ptr)
 
     world_state.insert(std::make_pair(std::to_string(client_id),user_map));
 
-    std::string reqString;
-
     //Request from the client
     while (1) {
         bzero(request, sizeof(request));
-        bytes_read = recv(client_id, request, sizeof(request), 0);
+        bytes_read = recv(client_id, request, 1024, 0);
+        std::cout << "request from client_id " << std::to_string(client_id) << std::endl;
         check_if_error(bytes_read, "Error reading from client");
-        
-        char response[BUFSIZ +1];
-        bzero(response,sizeof(response));
-        int bytes_written = 0;
+
         Server::process_request(request, client_id);
-        reqString = std::string(request);
     }
     close(client_id);
 }
@@ -248,7 +249,7 @@ std::string Server::build_request(std::string method, std::unordered_map<std::st
         request += (it->second).c_str();
         request += "\n";
     }
-    std::cout << request;
+    request += "\n!";
     return request;
 }
 

@@ -137,7 +137,7 @@ void Client::receive_response()
 {
     while (open_for_receiving)
     {
-        recv(sock,r_message,sizeof(r_message),0);
+        recv(sock,r_message,1024,0);
         
         if (r_message[0] == '\0') {
             bzero(&r_message,sizeof(r_message));
@@ -145,10 +145,10 @@ void Client::receive_response()
         }
         else
         {
-            std::cout << "getting info from server..." << std::endl;
-            std::cout << r_message << std::endl;
+            std::cout << "getting info from server..." << std::endl << std::endl;
+            std::cout << "B***" << std::endl << r_message << "***E" << std::endl;
             response_queue_mutex.lock();
-            response_queue.push_back(r_message);
+            response_queue.push_back(std::string(r_message));
             response_queue_mutex.unlock();
             bzero(&r_message,sizeof(r_message));
         }
@@ -190,6 +190,7 @@ std::string Client::build_request(std::string method, std::unordered_map<std::st
         request += (it->second).c_str();
         request += "\n";
     }
+    request += "\n";
     return request;
 }
 
@@ -229,9 +230,12 @@ int Client::run()
     std::cout << "My id is: " + Client::id << std::endl;
     thread_receive = std::thread(&Client::receive_response, this);
     thread_receive.detach();
+    std::string message_to_send;
     while (true)
     {
-        std::cout << Client::pop_response();
+        std::cout << "Send a message: ";
+        getline(std::cin,message_to_send);
+        Client::sendMessage(message_to_send);
     }
     return 0;
 }
