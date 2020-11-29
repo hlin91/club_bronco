@@ -21,12 +21,14 @@
 
 Client::Client(int p, std::string n)
 {
+    std::cout << "Starting client..." << std::endl;
     Client::port = p;
     Client::name = n;
 }
 
 void Client::setName(std::string s)
 {
+    std::cout << "Setting name to " << s << std::endl;
     Client::name = s;
 }
 

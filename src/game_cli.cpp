@@ -52,6 +52,7 @@ inline int startClient(int port = 4310)
 
 inline int getWorldState(std::unordered_map<unsigned int, Character> &others)
 {
+    std::cout << "Starting client" <<std::endl;
     startClient(4310);
     return myClient.getWorldState(others);
 }
@@ -98,6 +99,7 @@ class ClubBronco : public olc::PixelGameEngine
 public:
     ClubBronco()
     {
+        std::cout << "Starting Club Bronco" << std::endl;
         sAppName = "Club Bronco";
     }
 
@@ -533,6 +535,8 @@ int main()
     std::cin >> PLAYER_NAME;
     ClubBronco cb;
     if (cb.Construct(1280, 720, 1, 1))
+    {
         cb.Start();
+    }
     return 0;
 }
