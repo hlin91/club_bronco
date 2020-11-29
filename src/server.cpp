@@ -68,6 +68,7 @@ int Server::create_server_socket(int port)
 
 void Server::addUser(std::unordered_map<std::string,std::string> key_and_values)
 {
+    std::cout << key_and_values["name"] << " has joined!" << std::endl;
     world_state.insert(std::make_pair(key_and_values["id"],key_and_values));
 }
 
@@ -84,6 +85,8 @@ bool Server::inMap(std::unordered_map<std::string,std::string> key_and_values, s
 void Server::updateUser(std::unordered_map<std::string,std::string> key_and_values)
 {
     //This is the user that is going to be updated
+    std::cout << "Updating " << key_and_values["name"] << std::endl;
+    world_state_mutex.lock();
     std::unordered_map<std::string,std::string> user = world_state.at(key_and_values.at("id"));
 
     //For checking if the appropriate key is in the updating data
@@ -116,6 +119,7 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
     }
     //Replace the old user with the updated user
     world_state.insert(key_and_values["id"],user);
+    world_state_mutex.unlock();
 }
 
 void Server::updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)
@@ -129,12 +133,17 @@ void Server::updateOrAddUser(std::unordered_map<std::string,std::string> key_and
     }
 }
 
-void Server::echo_message_to_world(char* request) {
+void Server::echo_message_to_world(char* request, int cid) {
+    std::cout << "Echoing a message request..." << std::endl;
     int bytes_written = 0;
     //TODO: should the client that made this message request also receive it from
     //The server?
     for (auto c : world_state) {
-        bytes_written = write(std::stoi(c.first,nullptr), request, 1024);
+        //Only send this message to people who AREN'T the user.
+        if (c.first != std::to_string(cid))
+        {
+            bytes_written = write(std::stoi(c.first,nullptr), request, 1024);
+        }
     }
 }
 
@@ -150,7 +159,6 @@ void Server::process_request(char* request, int client_id)
     std::cout << "request has been parsed from client_id " << std::to_string(client_id) << std::endl;
     //Maybe the user only wants the world state?
     if (std::string(req).find("GET") != std::string::npos) {
-        std::cout << "Sending world state to client " << std::to_string(client_id) << std::endl;
         send_world_state(client_id);
         return;
     }
@@ -165,11 +173,9 @@ void Server::process_request(char* request, int client_id)
     }
     //Key and values should now hold all the "important" values of the character that was sent
     if (key_and_values.find("message") != key_and_values.end()) {
-        std::cout << "message from " << std::to_string(client_id) << std::endl;
-        Server::echo_message_to_world(request);
+        Server::echo_message_to_world(request,client_id);
     }
     else {
-        std::cout << "updating client_id " << std::to_string(client_id) << std::endl;
         Server::updateOrAddUser(key_and_values);
     }
 }
@@ -178,19 +184,19 @@ void Server::send_world_state(int client_id) {
     std::cout << "sending world state to client " << client_id << std::endl;
     std::string user_serialization;
     for (auto kv : world_state) {
-        //Build a post request for the client wherein the info is a user from the world_state
-        //TODO: should clients be receiving information about their own positioning?
-        //If not, then do a quick check on kv.first to make sure that it is not equal to the
-        //client id.
-        user_serialization = Server::build_request("POST",kv.second);
-        write(client_id,user_serialization.c_str(),1024);
+        //Don't send a user their own information!
+        if (std::stoi(kv.first) != client_id)
+        {
+            //Serialize a user into a POST request
+            user_serialization = Server::build_request("POST",kv.second);
+            //Write this user serialization to the user who requested it.
+            write(client_id,user_serialization.c_str(),1024);
+        }
     }
 }
 
 void Server::handle_client(int client_ptr)
 {
-
-    std::cout << "Handling client " << client_ptr << std::endl;
     int client_id = client_ptr;
 
     //Receive from the client their name: That will be the first thing sent
@@ -198,7 +204,7 @@ void Server::handle_client(int client_ptr)
     bzero(request, sizeof(request));
     int bytes_read = recv(client_id,request,1024,0);
     std::string name = std::string(request);
-    std::cout << "Client name: " << name << std::endl;
+    std::cout << "Handling Client name: " << name << std::endl;
     bzero(request, sizeof(request));
 
     //Write to this client only and give them their client_id;
@@ -211,7 +217,6 @@ void Server::handle_client(int client_ptr)
     Server::send_world_state(client_id);
 
     //Create this user and add them to the map
-    std::cout << "adding client_id " << std::to_string(client_id) << " to world" << std::endl;
     std::unordered_map<std::string, std::string> user_map;
     user_map["name"] = name;
     user_map["id"] = std::to_string(client_id);
@@ -220,8 +225,7 @@ void Server::handle_client(int client_ptr)
     user_map["dancing"] = "0";
     user_map["inputting"] = "0";
 
-    world_state.insert(std::make_pair(std::to_string(client_id),user_map));
-
+    Client::addUser(user_map);
     //Request from the client
     while (1) {
         bzero(request, sizeof(request));
