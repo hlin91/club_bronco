@@ -6,6 +6,7 @@
 #include <sstream>
 #include <assert.h>
 #include <string>
+#include <cfloat>
 
 #define float_type double
 #define PI 3.14159265358979323846

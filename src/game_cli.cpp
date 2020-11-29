@@ -12,9 +12,10 @@
 #include "client.hpp"
 
 #define POLL_RATE 17 // Rate in milliseconds at which to poll the server
+#define PORT 4310
 
 std::string PLAYER_NAME; // The name of the player
-Client myClient;
+Client myClient(PORT,"");
 
 //==============================================================================
 // The following functions describe this game client's interaction with
@@ -27,7 +28,7 @@ inline int startClient(int, std::string);
 // Returns -1 on failure
 inline int getWorldState(std::unordered_map<unsigned int, Character>&);
 // Send a message to be posted to the server
-inline void sendMessage(std::string&);
+inline void sendMessage(std::string);
 // Poll the server for the latest updates to other players and the message box
 inline void pollState(std::unordered_map<unsigned int, Character>&, std::deque<std::string>&, const unsigned int);
 // Tell the server to update the player's position
@@ -44,8 +45,8 @@ inline void sendExit();
 //==============================================================================
 
 inline int startClient(int port = 4310)
-{
-    myClient = Client(port,PLAYER_NAME);
+{   
+    myClient.setName(PLAYER_NAME);
     myClient.run();
 }
 
@@ -60,7 +61,7 @@ inline void pollState(std::unordered_map<unsigned int, Character> &others, std::
     myClient.pollState(others, messages, MAX_MESSAGES);
 }
 
-inline void sendMessage(std::string &msg)
+inline void sendMessage(std::string msg)
 {
     myClient.sendMessage(msg);
 }
@@ -90,55 +91,6 @@ inline void sendExit()
 //==============================================================================
 // The game client and related structs
 //==============================================================================
-
-struct Character
-{
-    static const int MAX_NAME_LENGTH = 20;
-    olc::vf2d pos; // The character's designated position
-    olc::vf2d currPos; // The character's current position
-    float theta; // Angle in radians from horizontal axis of line from current position to designated position
-    std::string name; // Player name
-    bool dancing; // Dancing flag
-    double danceAngle; // Current angle of rotation in the dance
-    bool inputting; // Is the player currently inputting
-    bool moving; // Is the avatar still moving to a designated position
-    float moveAngle; // Current angle of rotation in move animation
-    unsigned int id; // The unique ID associated with the character
-
-    Character()
-    {
-        pos = {0, 0};
-        currPos = {0, 0};
-        theta = 0;
-        name = "Player";
-        dancing = false;
-        danceAngle = 0;
-        inputting = false;
-        moving = false;
-        moveAngle = 0;
-        id = 0;
-    }
-
-    Character(std::string &n, unsigned int i=0, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
-    {
-        pos = p;
-        currPos = cp;
-        theta = 0;
-        name = n.substr(0, MAX_NAME_LENGTH);
-        dancing = false;
-        danceAngle = 0;
-        inputting = false;
-        moving = false;
-        moveAngle = 0;
-        id = i;
-    }
-
-    void move(float x, float y) // Move the character to specified position and update theta
-    {
-        pos = {x, y};
-        theta = atan2(currPos.y - pos.y, currPos.x - pos.x);
-    }
-};
 
 
 class ClubBronco : public olc::PixelGameEngine
@@ -247,7 +199,7 @@ private:
         return c;
     }
 
-    void addMessage(std::string &m) // Add message to message box
+    void addMessage(std::string m) // Add message to message box
     {
         if (messages.size() == MAX_MESSAGES)
             messages.pop_front();

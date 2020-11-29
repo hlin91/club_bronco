@@ -199,10 +199,12 @@ void Server::handle_client(int client_ptr)
 {
     int client_id = client_ptr;
 
-    //Receive from the client their name: That will be the first thing sent
+    //Instantiate and clear a buffer
     char request[BUFSIZ + 1];
     bzero(request, sizeof(request));
+    //Read the client's name into the buffer
     int bytes_read = recv(client_id,request,1024,0);
+    //Save into name string
     std::string name = std::string(request);
     std::cout << "Handling Client name: " << name << std::endl;
     bzero(request, sizeof(request));
