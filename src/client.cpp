@@ -55,6 +55,24 @@ int Client::getWorldState(std::unordered_map<unsigned int, Character>& game_cli_
 
 void Client::pollState(std::unordered_map<unsigned int, Character>& others, std::deque<std::string>& messages)
 {
+    //Tell server to give information
+    sendWSRequest();
+    //Wait a bit (?)
+    //Process each response
+    std::unordered_map<std::string,std::string> response_headers;
+    std::string response;
+    while ((resp = Client::pop_response()).compare("") != 0) {
+        response_headers = Client::processResponse(resp);
+        //Check if this has a message within
+        if (response_headers.find("message") != response_headers.end())
+        {
+            executeMessage(messages, response_headers);
+        }
+        else
+        {
+            executeResponse(game_cli_chars,response_headers);
+        }
+    }
 
 }
 
@@ -63,22 +81,55 @@ void Client::executeResponse(std::unordered_map<unsigned int, Character>& game_c
     //Check if this user exists
     if (game_cli_chars.find(std::stoi(response_headers["id"])) == game_cli_chars.end())
     {
-        //Character doesn't exist, so add them!
+        Client::addCharacter(game_cli_chars,response_headers);
     }
     else
     {
-        //Character does exist, so move them or make them start dancing or something
+        Client::updateCharacter(game_cli_chars,response_headers);
     }
 }
 
-void Client::updateCharacter(Character& c, std::unordered_map<std::string,std::string> response_headers)
+void Client::executeMessage(std::deque<std::string>& messages, std::unordered_map<std::string,std::string>& response_headers)
 {
-
+    std::string user_message = response_headers["name"] + ": " + response_headers["message"];
+    messages.push_back(user_message);
 }
 
-void Client::addCharacter(Character& c, std::unordered_map<std::string,std::string> response_headers)
+void Client::updateCharacter(std::unordered_map<unsigned int, Character>& game_cli_chars, std::unordered_map<std::string,std::string> response_headers)
 {
+    //Get the character out of the game_cli_chars using the id (remember, id is a string, gonna have to convert to int!)
+    Character c = game_cli_chars[std::stoi(response_headers["id"])];
+    //Iterate through the relevant headers, updating the character as you go along
+    //At the end, set the value of the id key to the new character
+    //"Return"
+}
 
+bool Client::fieldInMap(std::unordered_map<std::string,std::string>& key_and_values, std::string key) {
+    if (key_and_values.find(key) == key_and_values.end()) {
+        return false;
+    }
+    return true;
+}
+
+void Client::addCharacter(std::unordered_map<unsigned int, Character>& game_cli_chars, std::unordered_map<std::string,std::string>& response_headers)
+{
+    //Go through the response headers for the relevant information
+    unsigned int cid = std::stoi(response_headers["id"],nullptr);
+    std::string cname = response_headers["name"];
+    float xVal = std::stof(response_headers["xPos"],nullptr);
+    float yVal = std::stof(response_headers["yPos"],nullptr);
+    bool isDancing;
+    bool isInputting;
+    istringstream(response_headers["dancing"]) >> isDancing;
+    istringstream(response_headers["inputting"]) >> isInputting;
+
+    Character c = Character(cname,cid,{xVal,yVal},{xVal,yVal});
+    c.inputting = isInputting;
+    c.dancing = isDancing;
+
+    game_cli_chars.insert(std::make_pair(cid,c));
+
+    return;
 }
 
 /*
@@ -99,6 +150,14 @@ std::unordered_map<std::string, std::string> Client::processResponse(std::string
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
     return key_and_values;
+}
+
+void Client::SendWSRequest()
+{
+    std::string method = "GET";
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
+    std::string request = build_request(method,headers);
+    send_request(request);
 }
 
 void Client::sendInitial(float xPos = 0, float yPos = 0, bool isDancing = false, bool isInputting = false)

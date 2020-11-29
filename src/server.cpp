@@ -114,6 +114,8 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
         y = key_and_values[y];
         user["yPos"] = y;
     }
+    //Replace the old user with the updated user
+    world_state.insert(key_and_values["id"],user);
 }
 
 void Server::updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)

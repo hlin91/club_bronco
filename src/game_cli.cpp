@@ -56,7 +56,7 @@ int getWorldState(std::unordered_map<unsigned int, Character>& game_cli_chars)
     return myClient.getWorldState(game_cli_chars);
 }
 
-void pollState(std::unordered_map<unsigned int, Character>& others, std::deque<std::string>&, messages)
+void pollState(std::unordered_map<unsigned int, Character>& others, std::deque<std::string>& messages)
 {
     myClient.pollState(others, messages);
 }
