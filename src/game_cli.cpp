@@ -9,7 +9,7 @@
 #include <chrono>
 #include "olcPixelGameEngine/olcPixelGameEngine.h"
 #include "Polygon.h"
-#include "client.hpp"
+#include "client.cpp"
 
 #define POLL_RATE 17 // Rate in milliseconds at which to poll the server
 #define PORT 4310
@@ -50,10 +50,10 @@ inline int startClient(int port = 4310)
     myClient.run();
 }
 
-inline int getWorldState(std::unordered_map<unsigned int, Character> &game_cli_chars)
+inline int getWorldState(std::unordered_map<unsigned int, Character> &others)
 {
     startClient(4310);
-    return myClient.getWorldState(game_cli_chars);
+    return myClient.getWorldState(others);
 }
 
 inline void pollState(std::unordered_map<unsigned int, Character> &others, std::deque<std::string> &messages, const unsigned int MAX_MESSAGES)

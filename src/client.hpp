@@ -35,7 +35,7 @@ private:
     void send_request(std::string request);
     bool fieldInMap(std::unordered_map<std::string,std::string>&,std::string);
     void executeResponse(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string>& response_headers);
-    void executeMessage(std::deque<std::string>& messages, std::unordered_map<std::string,std::string>& response_headers);
+    void executeMessage(std::deque<std::string>& messages, std::unordered_map<std::string,std::string>& response_headers,const unsigned int MAX_MESSAGES);
     void updateCharacter(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string> response_headers);
     void addCharacter(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string>& response_headers);
     std::unordered_map<std::string, std::string> processResponse(std::string);

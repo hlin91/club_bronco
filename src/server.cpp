@@ -118,7 +118,7 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
         user["yPos"] = y;
     }
     //Replace the old user with the updated user
-    world_state.insert(key_and_values["id"],user);
+    world_state.insert(std::make_pair(key_and_values["id"],user));
     world_state_mutex.unlock();
 }
 
@@ -227,7 +227,7 @@ void Server::handle_client(int client_ptr)
     user_map["dancing"] = "0";
     user_map["inputting"] = "0";
 
-    Client::addUser(user_map);
+    Server::addUser(user_map);
     //Request from the client
     while (1) {
         bzero(request, sizeof(request));

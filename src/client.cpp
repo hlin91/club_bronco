@@ -96,7 +96,7 @@ void Client::executeResponse(std::unordered_map<unsigned int, Character>& others
     }
 }
 
-void Client::executeMessage(std::deque<std::string>& messages, std::unordered_map<std::string,std::string>& response_headers)
+void Client::executeMessage(std::deque<std::string>& messages, std::unordered_map<std::string,std::string>& response_headers, const unsigned int MAX_MESSAGES)
 {
     std::string user_message = response_headers["name"] + ": " + response_headers["message"];
     if (messages.size() >= MAX_MESSAGES)
@@ -127,7 +127,7 @@ void Client::updateCharacter(std::unordered_map<unsigned int, Character>& others
     return;
 }
 
-bool Client::fieldInMap(std::unordered_map<std::string,std::string>& key_and_values, std::string& key) {
+bool Client::fieldInMap(std::unordered_map<std::string,std::string>& key_and_values, std::string key) {
     if (key_and_values.find(key) == key_and_values.end()) {
         return false;
     }
