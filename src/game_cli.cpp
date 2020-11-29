@@ -21,67 +21,66 @@ Client myClient;
 // the server
 //==============================================================================
 
-
 //Start up the client with the port and name
-int startClient(int, std::string);
+inline int startClient(int, std::string);
 // Initial hand shake. Get the status of the players in the room and return the id to be used for this client
 // Returns -1 on failure
-int getWorldState(std::unordered_map<unsigned int, Character>&);
+inline int getWorldState(std::unordered_map<unsigned int, Character>&);
 // Send a message to be posted to the server
-void sendMessage(std::string&);
+inline void sendMessage(std::string&);
 // Poll the server for the latest updates to other players and the message box
-void pollState(std::unordered_map<unsigned int, Character>&, std::deque<std::string>&);
+inline void pollState(std::unordered_map<unsigned int, Character>&, std::deque<std::string>&, const unsigned int);
 // Tell the server to update the player's position
-void sendMovement(float, float);
+inline void sendMovement(float, float);
 // Tell the server that the player is inputting
-void sendInputting(bool);
+inline void sendInputting(bool);
 // Tell the server that the player is dancing
-void sendDancing(bool);
+inline void sendDancing(bool);
 // Tell the server that the player is leaving
-void sendExit();
+inline void sendExit();
 
 //==============================================================================
 // The following is the implementation of the functions above
 //==============================================================================
 
-int startClient(int port = 4310)
+inline int startClient(int port = 4310)
 {
     myClient = Client(port,PLAYER_NAME);
     myClient.run();
 }
 
-int getWorldState(std::unordered_map<unsigned int, Character>& game_cli_chars)
+inline int getWorldState(std::unordered_map<unsigned int, Character> &game_cli_chars)
 {
     startClient(4310);
     return myClient.getWorldState(game_cli_chars);
 }
 
-void pollState(std::unordered_map<unsigned int, Character>& others, std::deque<std::string>& messages)
+inline void pollState(std::unordered_map<unsigned int, Character> &others, std::deque<std::string> &messages, const unsigned int MAX_MESSAGES)
 {
-    myClient.pollState(others, messages);
+    myClient.pollState(others, messages, MAX_MESSAGES);
 }
 
-void sendMessage(std::string& msg)
+inline void sendMessage(std::string &msg)
 {
     myClient.sendMessage(msg);
 }
 
-void sendMovement(float x, float y)
+inline void sendMovement(float x, float y)
 {
     myClient.sendMovement(x,y);
 }
 
-void sendInputting(bool isInputting)
+inline void sendInputting(bool isInputting)
 {
     myClient.sendInputting(isInputting);
 }
 
-void sendDancing(bool isDancing)
+inline void sendDancing(bool isDancing)
 {
     myClient.sendDancing(isDancing);
 }
 
-void sendExit()
+inline void sendExit()
 {
     myClient.sendExit();
 }
@@ -359,7 +358,7 @@ private:
     {
         while (!gameOver)
         {
-            pollState(others, messages);
+            pollState(others, messages, MAX_MESSAGES);
             std::this_thread::sleep_for(std::chrono::milliseconds(POLL_RATE));
         }
     }
