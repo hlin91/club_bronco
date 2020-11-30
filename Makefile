@@ -14,9 +14,6 @@ client: src/game_cli.cpp src/client.hpp src/client.cpp src/olcPixelGameEngine/ol
 		@${CC} -O2 -w -o client src/game_cli.cpp -std=c++17 -macosx-version-min=10.15 -framework OpenGL -framework GLUT
 	endif
 
-src/game_cli.o: src/client.hpp src/olcPixelGameEngine/olcPixelGameEngine.h src/olcPixelGameEngine/stb_image.h
-	@${CC} -c -O2 src/game_cli.cpp -o src/game_cli.o
-
 server:  src/Parser.o src/server.o
 	@${CC} -O2 -o server src/Parser.o src/server.o
 
