@@ -1,3 +1,7 @@
 src/a.out
 src/client
 src/server
+client
+server
+*.o
+src/*.o
