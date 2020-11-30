@@ -321,8 +321,6 @@ public:
     bool OnUserCreate() override
     {
         // Called once at the start, so create things here
-        poller = std::thread(&ClubBronco::pollServer, this); // Create slave thread to listen for updates from HTTP server
-        poller.detach();
         int id = getWorldState(others);
         if (id == -1) // Exit if we fail to retrieve world state from server
         {
@@ -399,6 +397,8 @@ public:
         bounds.addVert(harv::Coord(432, 5));
         gameOver = false;
         sendMessage(player.name + " has joined!");
+        poller = std::thread(&ClubBronco::pollServer, this); // Create slave thread to listen for updates from HTTP server
+        poller.detach();
         return true;
     }
 
