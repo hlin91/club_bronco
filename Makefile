@@ -18,7 +18,7 @@ client: src/game_cli.cpp src/client.hpp src/client.cpp src/olcPixelGameEngine/ol
 #	@${CC} -O2 -o server src/Parser.o src/server.o
 
 server: src/server.o
-	@${CC} -O2 -o server src/server.o
+	@${CC} -O2 -o server src/server.o -lpthread
 
 src/Parser.o: src/Parser.c src/Parser.h
 	@${CC} -c -O2 src/Parser.c -o src/Parser.o
@@ -28,3 +28,5 @@ src/server.o: src/server.cpp
 
 clean:
 	@rm ./src/*.o
+	@rm ./client
+	
