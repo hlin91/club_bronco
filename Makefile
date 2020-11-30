@@ -1,6 +1,7 @@
 # Makefile for Club Bronco
 CC := clang++
 CCWINDOWS := cl
+OS := $(shell uname)
 
 .PHONY: all clean
 
