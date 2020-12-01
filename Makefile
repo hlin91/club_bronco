@@ -8,7 +8,7 @@ all: client server
 client: src/game_cli.cpp src/client.hpp src/client.cpp src/olcPixelGameEngine/olcPixelGameEngine.h src/olcPixelGameEngine/stb_image.h
 #	UNAME_S := $(shell uname -s)
 #	ifeq(${UNAME_S},Linux)
-	@${CC} -O2 -w -o client src/game_cli.cpp -lX11 -lGL -lpthread -lstdc++fs -std=c++17 -g
+	@${CC} -O2 -w -o client src/game_cli.cpp -lX11 -lGL -lpthread -lstdc++fs -std=c++17 -g -v
 #	endif
 #	ifeq(${UNAME_S},Darwin)
 #		@${CC} -O2 -w -o client src/game_cli.cpp -std=c++17 -macosx-version-min=10.15 -framework OpenGL -framework GLUT
