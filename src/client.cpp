@@ -50,6 +50,7 @@ std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
 */
 int Client::getWorldState(std::unordered_map<unsigned int, Character>& others)
 {
+    std::cout << "getting world state..." << std::endl;
     std::string resp = Client::pop_response();
     std::unordered_map<std::string,std::string> response_headers;
     //Process the entire queue
@@ -179,9 +180,11 @@ std::unordered_map<std::string, std::string> Client::processResponse(std::string
 
 void Client::sendWSRequest()
 {
+    std::cout << "Sending request for world state" << std::endl;
     std::string method = "GET";
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     std::string request = build_request(method,headers);
+    std::cout << request <<std::endl;
     send_request(request);
 }
 
@@ -293,6 +296,7 @@ void Client::create_server_socket()
 
 void Client::receive_response() 
 {
+    std::cout << "Now receiving from server..." << std::endl;
     while (open_for_receiving)
     {
         recv(sock,r_message,1024,0);
@@ -332,12 +336,14 @@ int Client::get_and_set_id() {
     std::cout << "receiving id from server" << std::endl;
     recv(sock,r_message,sizeof(r_message),0);
     Client::setId(std::string(r_message));
+    std::cout << "id of this client is: " << Client::getId() << std::endl;
     bzero(&r_message,sizeof(r_message));
+    return std::stoi(Client::getId());
 }
 
 std::string Client::build_request(std::string method, std::unordered_map<std::string, std::string> headers)
 { 
-
+    std::cout << "Sending " << method << " request" << std::endl;
     std::string request = "";
     request += (method + " / HTTP/1.1\n");
 
@@ -385,7 +391,7 @@ int Client::run()
 {
     create_server_socket();
     get_and_set_id();
-    std::cout << "My id is: " + Client::id << std::endl;
+    std::cout << "My id is: " + Client::getId() << std::endl;
     thread_receive = std::thread(&Client::receive_response, this);
     thread_receive.detach();
     return 0;

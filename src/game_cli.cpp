@@ -11,7 +11,7 @@
 #include "Polygon.h"
 #include "client.cpp"
 
-#define POLL_RATE 17 // Rate in milliseconds at which to poll the server
+#define POLL_RATE 1000 // Rate in milliseconds at which to poll the server
 #define PORT 4310
 
 std::string PLAYER_NAME; // The name of the player
@@ -23,7 +23,7 @@ Client myClient(PORT,"");
 //==============================================================================
 
 //Start up the client with the port and name
-inline int startClient(int, std::string);
+inline int startClient(int);
 // Initial hand shake. Get the status of the players in the room and return the id to be used for this client
 // Returns -1 on failure
 inline int getWorldState(std::unordered_map<unsigned int, Character>&);
@@ -59,26 +59,31 @@ inline int getWorldState(std::unordered_map<unsigned int, Character> &others)
 
 inline void pollState(std::unordered_map<unsigned int, Character> &others, std::deque<std::string> &messages, const unsigned int MAX_MESSAGES)
 {
+    std::cout << "Polling state..." << std::endl;
     myClient.pollState(others, messages, MAX_MESSAGES);
 }
 
 inline void sendMessage(std::string msg)
 {
+    std::cout << "Sending message..." << std::endl;
     myClient.sendMessage(msg);
 }
 
 inline void sendMovement(float x, float y)
 {
+    std::cout << "Sending movement..." << std::endl;
     myClient.sendMovement(x,y);
 }
 
 inline void sendInputting(bool isInputting)
 {
+    std::cout << "Sending inputting..." << std::endl;
     myClient.sendInputting(isInputting);
 }
 
 inline void sendDancing(bool isDancing)
 {
+    std::cout << "Sending dancing..." << std::endl;
     myClient.sendDancing(isDancing);
 }
 
