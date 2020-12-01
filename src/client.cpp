@@ -231,7 +231,7 @@ void Client::sendMovement(float xPos,float yPos)
 
 void Client::sendInputting(bool i) {
     std::string method = "POST";
-    std::unordered_map<std::string,std::string> headers;
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     std::string i_string = std::to_string(i);
     headers["inputting"] = i_string;
 
