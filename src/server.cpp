@@ -8,12 +8,13 @@
 #include <pthread.h>
 #include <list>
 #include <iterator>
-#include "Parser.h"
 #include <vector>
 #include <thread>
 #include <unordered_map>
 #include <mutex>
 #include "server.hpp"
+#include "Parser.h"
+
 
 #define SA struct sockaddr
 
@@ -101,24 +102,33 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
     if (Server::inMap(key_and_values,dancing)) {
         dancing = key_and_values[dancing];
         user["dancing"] = dancing;
+        std::cout << user["name"] << " now dancing" << std::endl;
     }
 
     if (Server::inMap(key_and_values,inputting)) {
         inputting = key_and_values[inputting];
         user["inputting"] = inputting;
+        std::cout << user["name"] << " now inputting" << std::endl;
     }
 
     if (Server::inMap(key_and_values,x)) {
         x = key_and_values[x];
         user["xPos"] = x;
+        std::cout << user["name"] << " now moving" << std::endl;
     }
 
     if (Server::inMap(key_and_values,y)) {
         y = key_and_values[y];
         user["yPos"] = y;
+        std::cout << user["name"] << " now moving" << std::endl;
     }
     //Replace the old user with the updated user
-    world_state.insert(std::make_pair(key_and_values["id"],user));
+    world_state[key_and_values["id"]] = user;
+    for (auto thing : user)
+    {
+        std::cout << thing.first << " : " << thing.second << std::endl;
+    }
+
     world_state_mutex.unlock();
 }
 
@@ -140,7 +150,7 @@ void Server::echo_message_to_world(char* request, int cid) {
     //The server?
     for (auto c : world_state) {
         //Only send this message to people who AREN'T the user.
-        if (c.first != std::to_string(cid))
+        if (c.first.compare(std::to_string(cid)) != 0)
         {
             bytes_written = write(std::stoi(c.first,nullptr), request, 1024);
         }
@@ -155,8 +165,6 @@ void Server::process_request(char* request, int client_id)
     char message[1024];
     unsigned int numHeaders = 0;
     parseRequest(request,req,headers,message,&numHeaders);
-    std::cout << req << std::endl;
-    std::cout << "request has been parsed from client_id " << std::to_string(client_id) << std::endl;
     //Maybe the user only wants the world state?
     if (std::string(req).find("GET") != std::string::npos) {
         send_world_state(client_id);
@@ -185,12 +193,12 @@ void Server::send_world_state(int client_id) {
     std::string user_serialization;
     for (auto kv : world_state) {
         //Don't send a user their own information!
-        if (std::stoi(kv.first) != client_id)
+        if (std::stoi(kv.first,nullptr) != client_id)
         {
             //Serialize a user into a POST request
             user_serialization = Server::build_request("POST",kv.second);
             //Write this user serialization to the user who requested it.
-            write(client_id,user_serialization.c_str(),1024);
+            write(client_id,&user_serialization[0],1024);
             std::cout << "Wrote " << kv.second["name"] << " to " << std::to_string(client_id) << std::endl;
         }
     }
@@ -223,8 +231,8 @@ void Server::handle_client(int client_ptr)
     std::unordered_map<std::string, std::string> user_map;
     user_map["name"] = name;
     user_map["id"] = std::to_string(client_id);
-    user_map["xPos"] = "0";
-    user_map["yPos"] = "0";
+    user_map["xPos"] = "220";
+    user_map["yPos"] = "220";
     user_map["dancing"] = "0";
     user_map["inputting"] = "0";
 
@@ -235,7 +243,6 @@ void Server::handle_client(int client_ptr)
         bytes_read = recv(client_id, request, 1024, 0);
         check_if_error(bytes_read, "Error reading from client!!!");
         if (request[0] != '\0') {
-            std::cout << "request from client_id " << std::to_string(client_id) << std::endl;
             Server::process_request(request, client_id);
         }
         bzero(request, sizeof(request));

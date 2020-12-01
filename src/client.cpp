@@ -101,6 +101,7 @@ void Client::executeResponse(std::unordered_map<unsigned int, Character>& others
 
 void Client::executeMessage(std::deque<std::string>& messages, std::unordered_map<std::string,std::string>& response_headers, const unsigned int MAX_MESSAGES)
 {
+    std::cout << "Receiving message..." << std::endl;
     std::string user_message = response_headers["name"] + ": " + response_headers["message"];
     if (messages.size() >= MAX_MESSAGES)
     {
@@ -112,6 +113,11 @@ void Client::executeMessage(std::deque<std::string>& messages, std::unordered_ma
 void Client::updateCharacter(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string> response_headers)
 {
     //Get the character out of the others using the id (remember, id is a string, gonna have to convert to int!)
+    std::cout << "Updating " << response_headers["name"] << std::endl;
+    for (auto header : response_headers)
+    {
+        std::cout << header.first << ": " << header.second << std::endl;
+    }
     others[std::stoi(response_headers["id"])];
     if (fieldInMap(response_headers,"xPos") && fieldInMap(response_headers,"yPos"))
     {
