@@ -30,10 +30,10 @@ struct Character
         id = 0;
     }
 
-    Character(std::string &n, unsigned int i=0, const olc::vf2d &p={0, 0}, const olc::vf2d &cp={0, 0})
+    Character(std::string &n, unsigned int i=0, float xp=0, float yp=0, float xcp=0, float ycp=0)
     {
-        pos = p;
-        currPos = cp;
+        pos = {xp,yp};
+        currPos = {xcp,ycp};
         theta = 0;
         name = n.substr(0, MAX_NAME_LENGTH);
         dancing = false;

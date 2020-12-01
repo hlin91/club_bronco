@@ -149,7 +149,7 @@ void Client::addCharacter(std::unordered_map<unsigned int, Character>& others, s
     std::istringstream(response_headers["dancing"]) >> isDancing;
     std::istringstream(response_headers["inputting"]) >> isInputting;
 
-    Character c = Character(cname,cid,{xVal,yVal},{xVal,yVal});
+    Character c = Character(cname,cid,xVal,yVal,xVal,yVal);
     c.inputting = isInputting;
     c.dancing = isDancing;
 
