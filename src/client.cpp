@@ -297,7 +297,7 @@ void Client::create_server_socket()
     //Check for error with socket
     check_if_error(sock, "Error with socket");
 
-    check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)), "setsockopt");
+    check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)), "setsockopt");
 
     //Connect to server
     connect(sock, (SA*)&server_address,sizeof(server_address));
