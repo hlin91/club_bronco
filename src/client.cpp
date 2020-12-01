@@ -265,7 +265,7 @@ void Client::sendExit()
 {
     std::string method = "POST";
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
-    headers["exit"] = "true";
+    headers["exit"] = "1";
     std::string request = build_request(method,headers);
     send_request(request);
 }
