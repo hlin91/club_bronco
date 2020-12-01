@@ -66,7 +66,7 @@ void Client::pollState(std::unordered_map<unsigned int, Character>& others, std:
 {
     //Tell server to give information
     sendWSRequest();
-    std::this_thread::sleep_for (std::chrono::seconds(1));
+    std::this_thread::sleep_for (std::chrono::milliseconds(83));
     //Process each response
     std::unordered_map<std::string,std::string> response_headers;
     std::string resp = Client::pop_response();

@@ -11,7 +11,7 @@
 #include "Polygon.h"
 #include "client.cpp"
 
-#define POLL_RATE 100 // Rate in milliseconds at which to poll the server
+#define POLL_RATE 17 // Rate in milliseconds at which to poll the server
 #define PORT 4310
 
 std::string PLAYER_NAME; // The name of the player
@@ -48,12 +48,14 @@ inline void startClient(int port = 4310)
 {   
     myClient.setName(PLAYER_NAME);
     myClient.run();
+
 }
 
-inline int getWorldState(std::unordered_map<unsigned int, Character> &others)
+inline int getWorldState(std::unordered_map<unsigned int, Character> &others, float x, float y)
 {
     std::cout << "Starting client" <<std::endl;
     startClient(4310);
+    myClient.sendInitial(x,y,false,false);
     return myClient.getWorldState(others);
 }
 
@@ -326,7 +328,7 @@ public:
     bool OnUserCreate() override
     {
         // Called once at the start, so create things here
-        int id = getWorldState(others);
+        int id = getWorldState(others, float(ScreenWidth() / 2.0), float(ScreenHeight() / 2.0));
         if (id == -1) // Exit if we fail to retrieve world state from server
         {
             fprintf(stderr, "Failed to retrieve world state\n");

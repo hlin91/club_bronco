@@ -70,7 +70,11 @@ int Server::create_server_socket(int port)
 void Server::addUser(std::unordered_map<std::string,std::string> key_and_values)
 {
     std::cout << key_and_values["name"] << " has joined!" << std::endl;
-    world_state.insert(std::make_pair(key_and_values["id"],key_and_values));
+    world_state[key_and_values["id"]] = key_and_values;
+    for (auto kv : key_and_values)
+    {
+        std::cout << kv.first << " : " << kv.second << std::endl;
+    }
 }
 
 /*
@@ -227,16 +231,16 @@ void Server::handle_client(int client_ptr)
     //Send them all the "characters"
     Server::send_world_state(client_id);
 
-    //Create this user and add them to the map
-    std::unordered_map<std::string, std::string> user_map;
-    user_map["name"] = name;
-    user_map["id"] = std::to_string(client_id);
-    user_map["xPos"] = "370";
-    user_map["yPos"] = "640";
-    user_map["dancing"] = "0";
-    user_map["inputting"] = "0";
+    // //Create this user and add them to the map
+    // std::unordered_map<std::string, std::string> user_map;
+    // user_map["name"] = name;
+    // user_map["id"] = std::to_string(client_id);
+    // user_map["xPos"] = "370";
+    // user_map["yPos"] = "640";
+    // user_map["dancing"] = "0";
+    // user_map["inputting"] = "0";
 
-    Server::addUser(user_map);
+    // Server::addUser(user_map);
     //Request from the client
     while (1) {
         bzero(request, sizeof(request));
