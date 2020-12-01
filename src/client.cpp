@@ -88,6 +88,11 @@ void Client::pollState(std::unordered_map<unsigned int, Character>& others, std:
 
 void Client::executeResponse(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string>& response_headers)
 {
+    //Check if these response headers are even valid.
+    if (!fieldInMap(response_headers,"name") || !fieldInMap(response_headers,"id"))
+    {
+        return;
+    }
     //Check if this user exists
     if (others.find(std::stoi(response_headers["id"])) == others.end())
     {
@@ -112,13 +117,11 @@ void Client::executeMessage(std::deque<std::string>& messages, std::unordered_ma
 
 void Client::updateCharacter(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string> response_headers)
 {
-    //Get the character out of the others using the id (remember, id is a string, gonna have to convert to int!)
-    // std::cout << "Updating " << response_headers["name"] << std::endl;
-    // for (auto header : response_headers)
-    // {
-    //     std::cout << header.first << ": " << header.second << std::endl;
-    // }
-    others[std::stoi(response_headers["id"])];
+    if (!fieldInMap(response_headers,"name") || !fieldInMap(response_headers,"id"))
+    {
+        return;
+    }
+    
     if (fieldInMap(response_headers,"xPos") && fieldInMap(response_headers,"yPos"))
     {
         float xLoc = std::stof(response_headers["xPos"],nullptr);

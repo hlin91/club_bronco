@@ -139,6 +139,10 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
 
 void Server::updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values)
 {
+    if (!Server::inMap(key_and_values,"name") || !Server::inMap(key_and_values,"id"))
+    {
+        return;
+    }
     std::string charId = key_and_values["id"];
     if (world_state.find(charId) == world_state.end()) {
         Server::addUser(key_and_values);
