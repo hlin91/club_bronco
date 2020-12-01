@@ -191,6 +191,7 @@ void Server::send_world_state(int client_id) {
             user_serialization = Server::build_request("POST",kv.second);
             //Write this user serialization to the user who requested it.
             write(client_id,user_serialization.c_str(),1024);
+            std::cout << "Wrote " << kv.second["name"] << " to " << std::to_string(client_id) << std::endl;
         }
     }
 }
@@ -232,7 +233,7 @@ void Server::handle_client(int client_ptr)
     while (1) {
         bzero(request, sizeof(request));
         bytes_read = recv(client_id, request, 1024, 0);
-        check_if_error(bytes_read, "Error reading from client");
+        check_if_error(bytes_read, "Error reading from client!!!");
         if (request[0] != '\0') {
             std::cout << "request from client_id " << std::to_string(client_id) << std::endl;
             Server::process_request(request, client_id);

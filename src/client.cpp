@@ -66,7 +66,7 @@ void Client::pollState(std::unordered_map<unsigned int, Character>& others, std:
 {
     //Tell server to give information
     sendWSRequest();
-    //Wait a bit (?)
+    std::this_thread::sleep_for (std::chrono::seconds(1));
     //Process each response
     std::unordered_map<std::string,std::string> response_headers;
     std::string resp = Client::pop_response();
@@ -162,6 +162,7 @@ void Client::addCharacter(std::unordered_map<unsigned int, Character>& others, s
     Function to demodulate a string response into its headers
 */
 std::unordered_map<std::string, std::string> Client::processResponse(std::string response) {
+    std::cout << "Processing response from server..." << std::endl;
     char req[1024];
     char *headers[12];
     char message[1024];
@@ -297,9 +298,15 @@ void Client::create_server_socket()
 void Client::receive_response() 
 {
     std::cout << "Now receiving from server..." << std::endl;
+    
+    int bytes_read = 0;
+
     while (open_for_receiving)
     {
-        recv(sock,r_message,1024,0);
+        bytes_read = recv(sock,r_message,1024,0);
+        while (bytes_read < 10){
+            bytes_read = recv(sock,r_message,1024,0);
+        }
         
         if (r_message[0] == '\0') {
             bzero(&r_message,sizeof(r_message));
@@ -368,6 +375,7 @@ void Client::send_request(std::string request)
 
 std::string Client::pop_response()
 {   
+    std::cout << "popping response from response queue" << std::endl;
     std::string oldest_response = "";
 
     response_queue_mutex.lock();
@@ -391,7 +399,6 @@ int Client::run()
 {
     create_server_socket();
     get_and_set_id();
-    std::cout << "My id is: " + Client::getId() << std::endl;
     thread_receive = std::thread(&Client::receive_response, this);
     thread_receive.detach();
     return 0;
