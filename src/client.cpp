@@ -113,11 +113,11 @@ void Client::executeMessage(std::deque<std::string>& messages, std::unordered_ma
 void Client::updateCharacter(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string> response_headers)
 {
     //Get the character out of the others using the id (remember, id is a string, gonna have to convert to int!)
-    std::cout << "Updating " << response_headers["name"] << std::endl;
-    for (auto header : response_headers)
-    {
-        std::cout << header.first << ": " << header.second << std::endl;
-    }
+    // std::cout << "Updating " << response_headers["name"] << std::endl;
+    // for (auto header : response_headers)
+    // {
+    //     std::cout << header.first << ": " << header.second << std::endl;
+    // }
     others[std::stoi(response_headers["id"])];
     if (fieldInMap(response_headers,"xPos") && fieldInMap(response_headers,"yPos"))
     {
@@ -168,7 +168,6 @@ void Client::addCharacter(std::unordered_map<unsigned int, Character>& others, s
     Function to demodulate a string response into its headers
 */
 std::unordered_map<std::string, std::string> Client::processResponse(std::string response) {
-    std::cout << "Processing response from server..." << std::endl;
     char req[1024];
     char *headers[12];
     char message[1024];
@@ -320,8 +319,8 @@ void Client::receive_response()
         }
         else
         {
-            std::cout << "getting info from server..." << std::endl << std::endl;
-            std::cout << "B***" << std::endl << r_message << "***E" << std::endl;
+            // std::cout << "getting info from server..." << std::endl << std::endl;
+            // std::cout << "B***" << std::endl << r_message << "***E" << std::endl;
             response_queue_mutex.lock();
             response_queue.push_back(std::string(r_message));
             response_queue_mutex.unlock();

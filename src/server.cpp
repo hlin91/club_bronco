@@ -128,6 +128,7 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
     }
     //Replace the old user with the updated user
     world_state[key_and_values["id"]] = user;
+    std::cout << key_and_values["id"] << " now updated:" << std::endl;
     for (auto thing : user)
     {
         std::cout << thing.first << " : " << thing.second << std::endl;
@@ -163,7 +164,6 @@ void Server::echo_message_to_world(char* request, int cid) {
 
 void Server::process_request(char* request, int client_id)
 {
-    std::cout << "processing request from client_id " << std::to_string(client_id) << std::endl;
     char req[1024];
     char *headers[12];
     char message[1024];
@@ -203,7 +203,6 @@ void Server::send_world_state(int client_id) {
             user_serialization = Server::build_request("POST",kv.second);
             //Write this user serialization to the user who requested it.
             write(client_id,&user_serialization[0],1024);
-            std::cout << "Wrote " << kv.second["name"] << " to " << std::to_string(client_id) << std::endl;
         }
     }
 }
