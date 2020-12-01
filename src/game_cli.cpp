@@ -517,12 +517,14 @@ public:
             DrawStringDecal(drawPos, messages[i], olc::WHITE);
         }
         // Draw the other player names
-        for (unsigned int i = 0; i < others.size(); ++i)
+	int i = 0;
+        for (auto &c : others)
         {
             if (i > 28) // Only draw up to 29 other player names
                 break;
             olc::vf2d drawPos = {namePos.x, namePos.y + (i + 1) * 12};
-            DrawStringDecal(drawPos, others[i].name.substr(0, 12), olc::WHITE); // Only draw the first 12 characters of name
+            DrawStringDecal(drawPos, c.second.name.substr(0, 12), olc::WHITE); // Only draw the first 12 characters of name
+	    ++i;
         }
         if (others.size() > 28) // If there are more than 28 other players in the room
         {
