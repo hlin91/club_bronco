@@ -536,8 +536,8 @@ int main()
 {
     // Get the player name
     std::cout << "Enter your name: ";
-    std::cin.ignore();
-    std::cin >> PLAYER_NAME;
+    std::getline(std::cin,PLAYER_NAME);
+    std::cout << PLAYER_NAME << std::endl;
     ClubBronco cb;
     if (cb.Construct(1280, 720, 1, 1))
     {
