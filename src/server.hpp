@@ -24,7 +24,7 @@ class Server
 public:
     int port;
     int servSock;
-    std::unordered_map<std::string, std::unordered_map<std::string,std::string>> world_state;
+    std::unordered_map<std::string, std::unordered_map<std::string,std::string> > world_state;
     std::mutex world_state_mutex;
 
     Server(int p);
