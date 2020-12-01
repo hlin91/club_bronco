@@ -231,8 +231,8 @@ void Server::handle_client(int client_ptr)
     std::unordered_map<std::string, std::string> user_map;
     user_map["name"] = name;
     user_map["id"] = std::to_string(client_id);
-    user_map["xPos"] = "220";
-    user_map["yPos"] = "220";
+    user_map["xPos"] = "370";
+    user_map["yPos"] = "640";
     user_map["dancing"] = "0";
     user_map["inputting"] = "0";
 

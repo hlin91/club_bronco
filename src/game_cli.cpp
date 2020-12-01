@@ -11,7 +11,7 @@
 #include "Polygon.h"
 #include "client.cpp"
 
-#define POLL_RATE 1000 // Rate in milliseconds at which to poll the server
+#define POLL_RATE 100 // Rate in milliseconds at which to poll the server
 #define PORT 4310
 
 std::string PLAYER_NAME; // The name of the player
