@@ -57,7 +57,7 @@ int Server::create_server_socket(int port)
         exit(0); 
     } 
 
-    Server::check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)), "setsockopt");
+    Server::check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)), "setsockopt");
 
     // Attempt to make the socket (fd) a listening type socket
     Server::check_if_error(listen(sock, 10), "Could not make the socket a listening type socket");
