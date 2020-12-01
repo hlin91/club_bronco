@@ -23,7 +23,7 @@ Client myClient(PORT,"");
 //==============================================================================
 
 //Start up the client with the port and name
-inline int startClient(int);
+inline void startClient(int);
 // Initial hand shake. Get the status of the players in the room and return the id to be used for this client
 // Returns -1 on failure
 inline int getWorldState(std::unordered_map<unsigned int, Character>&);
@@ -44,7 +44,7 @@ inline void sendExit();
 // The following is the implementation of the functions above
 //==============================================================================
 
-inline int startClient(int port = 4310)
+inline void startClient(int port = 4310)
 {   
     myClient.setName(PLAYER_NAME);
     myClient.run();
@@ -537,7 +537,6 @@ int main()
     // Get the player name
     std::cout << "Enter your name: ";
     std::getline(std::cin,PLAYER_NAME);
-    std::cout << PLAYER_NAME << std::endl;
     ClubBronco cb;
     if (cb.Construct(1280, 720, 1, 1))
     {

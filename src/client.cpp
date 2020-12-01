@@ -37,9 +37,9 @@ std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
     std::unordered_map<std::string,std::string> headers;
     headers["id"] = Client::getId();
     headers["name"] = Client::getName();
-    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    std::tm now_tm = *std::localtime(&now_c);
+    //std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    //std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    //std::tm now_tm = *std::localtime(&now_c);
     //TODO: account for timestamp
     return headers;
 }
