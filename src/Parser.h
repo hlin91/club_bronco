@@ -7,8 +7,6 @@
 
 #define BUFF_MAX 1024
 
-#include "Parser.c"
-
 /*
     Parse an HTTP request and extract the request line, headers, and message
     Returns false on an empty string
