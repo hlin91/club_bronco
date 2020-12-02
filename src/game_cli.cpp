@@ -48,7 +48,6 @@ inline void startClient(int port = 4310)
 {   
     myClient.setName(PLAYER_NAME);
     myClient.run();
-
 }
 
 inline int getWorldState(std::unordered_map<unsigned int, Character> &others, float x, float y)
@@ -539,12 +538,20 @@ public:
 int main()
 {
     // Get the player name
-    std::cout << "Enter your name: ";
-    std::getline(std::cin,PLAYER_NAME);
+    std::cout << "Enter your name (max 16 characters): ";
+    std::getline(std::cin, PLAYER_NAME);
+    while (PLAYER_NAME.size() > 16)
+    {
+	std::cout << "Name is too long. Try again: ";
+	std::getline(std::cin, PLAYER_NAME);
+    }
     ClubBronco cb;
     if (cb.Construct(1280, 720, 1, 1))
-    {
         cb.Start();
+    else
+    {
+	std::cout << "Could not connect to server\n";
+	return 1;
     }
     return 0;
 }
