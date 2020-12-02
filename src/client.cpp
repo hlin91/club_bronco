@@ -130,6 +130,11 @@ void Client::updateCharacter(std::unordered_map<unsigned int, Character>& others
     {
         return;
     }
+
+    if (fieldInMap(response_headers,"exit"))
+    {
+        others.erase(std::stoi(response_headers["id"]));
+    }
     
     if (fieldInMap(response_headers,"xPos") && fieldInMap(response_headers,"yPos"))
     {

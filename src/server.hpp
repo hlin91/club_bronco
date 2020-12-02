@@ -37,6 +37,7 @@ public:
     void updateUser(std::unordered_map<std::string,std::string> key_and_values);
     void updateOrAddUser(std::unordered_map<std::string,std::string> key_and_values);
     void echo_message_to_world(char* request, int client_id);
+    void exit_character(std::unordered_map<std::string,std::string> key_and_values, int client_id);
     void process_request(char* request, int client_id);
     void send_world_state(int client_id,std::unordered_map<std::string, std::string>&);
     void handle_client(int client_ptr);

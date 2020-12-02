@@ -205,9 +205,21 @@ void Server::process_request(char* request, int client_id)
     else if (key_and_values.find("message") != key_and_values.end()) {
         Server::echo_message_to_world(request,client_id);
     }
+    else if (key_and_values.find("exit") != key_and_values.end())
+    {
+        Server::exit_character(key_and_values,client_id);
+        Server::echo_message_to_world(request,client_id);
+
+    }
     else {
         Server::updateOrAddUser(key_and_values);
     }
+}
+
+void Server::exit_character(std::unordered_map<std::string,std::string> key_and_values, int client_id)
+{
+    close(client_id);
+    world_state.erase(key_and_values["id"]);
 }
 
 void Server::send_world_state(int client_id, std::unordered_map<std::string, std::string>& key_and_values) {
