@@ -90,6 +90,10 @@ bool Server::inMap(std::unordered_map<std::string,std::string> key_and_values, s
 void Server::updateUser(std::unordered_map<std::string,std::string> key_and_values)
 {
     //This is the user that is going to be updated
+    if (inMap(key_and_values,"message"))
+    {
+        return;
+    }
     std::cout << "Updating " << key_and_values["name"] << std::endl;
     world_state_mutex.lock();
     std::unordered_map<std::string,std::string> user = world_state.at(key_and_values.at("id"));
@@ -203,7 +207,7 @@ void Server::process_request(char* request, int client_id)
 }
 
 void Server::send_world_state(int client_id, std::unordered_map<std::string, std::string>& key_and_values) {
-    std::cout << "sending world state to client " << client_id << std::endl;
+    bool sending = false;
     std::string user_serialization;
     unsigned int reqTimeStamp = 0;
     unsigned int charTimeStamp = 0;
@@ -215,7 +219,8 @@ void Server::send_world_state(int client_id, std::unordered_map<std::string, std
             reqTimeStamp = std::stoi(key_and_values["time"]);
             charTimeStamp = std::stoi(kv.second["time"]);
 
-            if (reqTimeStamp > charTimeStamp)
+            //Only compare timestamp if this is not an initialrequest
+            if (reqTimeStamp > charTimeStamp && !inMap(key_and_values, "initial"))
             {
                 continue;
             }
@@ -224,6 +229,11 @@ void Server::send_world_state(int client_id, std::unordered_map<std::string, std
             user_serialization = Server::build_request("POST",kv.second);
             //Write this user serialization to the user who requested it.
             write(client_id,&user_serialization[0],1024);
+            sending = true;
+        }
+        if (sending)
+        {
+            std::cout << "sending world state to client " << client_id << std::endl;
         }
     }
 }
@@ -248,19 +258,7 @@ void Server::handle_client(int client_ptr)
     std::cout << "Sending id to " << name << std::endl;
     rc = write(client_id,client_id_str.c_str(),1024);
 
-    //Send them all the "characters"
 
-    // //Create this user and add them to the map
-    // std::unordered_map<std::string, std::string> user_map;
-    // user_map["name"] = name;
-    // user_map["id"] = std::to_string(client_id);
-    // user_map["xPos"] = "370";
-    // user_map["yPos"] = "640";
-    // user_map["dancing"] = "0";
-    // user_map["inputting"] = "0";
-
-    // Server::addUser(user_map);
-    //Request from the client
     while (1) {
         bzero(request, sizeof(request));
         bytes_read = recv(client_id, request, 1024, 0);

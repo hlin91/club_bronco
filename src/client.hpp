@@ -57,6 +57,7 @@ public:
     void sendDancing(bool);
     void sendInitial(float,float,bool,bool);
     void sendWSRequest();
+    void sendInitialWSRequest();
     int run();
     void sendExit();
     void setName(std::string);

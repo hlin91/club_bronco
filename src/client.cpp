@@ -52,7 +52,7 @@ std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
 */
 int Client::getWorldState(std::unordered_map<unsigned int, Character>& others)
 {
-    sendWSRequest();
+    sendInitialWSRequest();
     std::this_thread::sleep_for (std::chrono::milliseconds(83));
     std::cout << "getting world state..." << std::endl;
     std::string resp = Client::pop_response();
@@ -197,7 +197,16 @@ void Client::sendWSRequest()
     std::string method = "GET";
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     std::string request = build_request(method,headers);
-    std::cout << request <<std::endl;
+    send_request(request);
+}
+
+void Client::sendInitialWSRequest()
+{
+    std::cout << "Sending request for world state" << std::endl;
+    std::string method = "GET";
+    std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
+    headers["initial"] = "1";
+    std::string request = build_request(method,headers);
     send_request(request);
 }
 
@@ -387,13 +396,13 @@ void Client::send_request(std::string request)
 
 std::string Client::pop_response()
 {   
-    std::cout << "popping response from response queue" << std::endl;
     std::string oldest_response = "";
 
     response_queue_mutex.lock();
 
     if (!response_queue.empty())
     {
+        std::cout << "popping response from response queue" << std::endl;
         oldest_response = response_queue.front();
         response_queue.pop_front();
     }
