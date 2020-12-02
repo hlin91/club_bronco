@@ -204,6 +204,7 @@ void Server::process_request(char* request, int client_id)
     else {
         Server::updateOrAddUser(key_and_values);
     }
+    free(headers);
 }
 
 void Server::send_world_state(int client_id, std::unordered_map<std::string, std::string>& key_and_values) {
