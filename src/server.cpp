@@ -193,10 +193,11 @@ void Server::process_request(char* request, int client_id)
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
-    for (unsigned int h = 0; h < numHeaders; h++)
+    for (int h = 0; h < numHeaders; ++h)
     {
         free(headers[h]);
     }
+    
     //Maybe the user only wants the world state?
     if (std::string(req).find("GET") != std::string::npos) {
         send_world_state(client_id, key_and_values);
