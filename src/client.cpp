@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #define SA struct sockaddr
+#define MBOX_CHAR_W = 45;
 
 Client::Client(int p, std::string n)
 {
@@ -112,10 +113,10 @@ void Client::executeMessage(std::deque<std::string>& messages, std::unordered_ma
 {
     std::cout << "Receiving message..." << std::endl;
     std::string m = response_headers["name"] + ": " + response_headers["message"];
-    messages.push_back(m.substr(0,45));
-    if (m.size() > 45)
+    messages.push_back(m.substr(0,MSG_LENGTH));
+    if (m.size() > MSG_LENGTH)
     {
-        messages.push_back(m.substr(45));
+        messages.push_back(m.substr(MSG_LENGTH));
     }
     while (messages.size() > MAX_MESSAGES)
     {

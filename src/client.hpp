@@ -23,6 +23,7 @@ private:
     int port = 4310;
     std::thread thread_receive;
     std::stringstream ss;
+    static const int MSG_LENGTH = 45;
 
     int check_if_error(int returned_value, char *error_msg);
     void create_server_socket();
