@@ -42,6 +42,7 @@ int Server::create_server_socket(int port)
 
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
+    //This will have to change for port forwarding
     server_address.sin_addr.s_addr = INADDR_ANY;
     server_address.sin_port = htons(port);
     
