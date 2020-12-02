@@ -80,7 +80,7 @@ void Client::pollState(std::unordered_map<unsigned int, Character>& others, std:
         //Check if this has a message within
         if (response_headers.find("message") != response_headers.end())
         {
-            executeMessage(messages, response_headers,MAX_MESSAGES);
+            executeMessage(messages,response_headers,MAX_MESSAGES);
         }
         else
         {
@@ -134,6 +134,7 @@ void Client::updateCharacter(std::unordered_map<unsigned int, Character>& others
     if (fieldInMap(response_headers,"exit"))
     {
         others.erase(std::stoi(response_headers["id"]));
+
     }
     
     if (fieldInMap(response_headers,"xPos") && fieldInMap(response_headers,"yPos"))
@@ -198,7 +199,7 @@ std::unordered_map<std::string, std::string> Client::processResponse(std::string
         parseHeader(headers[i],key,value);
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
-    for (int h = 0; h < numHeaders; ++h)
+    for (unsigned int h = 0; h < numHeaders; ++h)
     {
         free(headers[h]);
     }
@@ -347,8 +348,6 @@ void Client::receive_response()
         }
         else
         {
-            // std::cout << "getting info from server..." << std::endl << std::endl;
-            // std::cout << "B***" << std::endl << r_message << "***E" << std::endl;
             response_queue_mutex.lock();
             response_queue.push_back(std::string(r_message));
             response_queue_mutex.unlock();

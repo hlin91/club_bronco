@@ -193,17 +193,11 @@ void Server::process_request(char* request, int client_id)
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
-    for (int h = 0; h < numHeaders; ++h)
-    {
-        free(headers[h]);
-    }
-    
+
     //Maybe the user only wants the world state?
     if (std::string(req).find("GET") != std::string::npos) {
         send_world_state(client_id, key_and_values);
-        return;
     }
-    //Key and values should now hold all the "important" values of the character that was sent
     else if (key_and_values.find("message") != key_and_values.end()) {
         Server::echo_message_to_world(request,client_id);
     }
@@ -215,6 +209,10 @@ void Server::process_request(char* request, int client_id)
     }
     else {
         Server::updateOrAddUser(key_and_values);
+    }
+    for (unsigned int h = 0; h < numHeaders; ++h)
+    {
+        free(headers[h]);
     }
 }
 
