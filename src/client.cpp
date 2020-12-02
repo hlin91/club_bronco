@@ -202,7 +202,6 @@ std::unordered_map<std::string, std::string> Client::processResponse(std::string
 
 void Client::sendWSRequest()
 {
-    std::cout << "Sending request for world state" << std::endl;
     std::string method = "GET";
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     std::string request = build_request(method,headers);
@@ -211,7 +210,6 @@ void Client::sendWSRequest()
 
 void Client::sendInitialWSRequest()
 {
-    std::cout << "Sending request for world state" << std::endl;
     std::string method = "GET";
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     headers["initial"] = "1";

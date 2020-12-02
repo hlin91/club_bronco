@@ -235,10 +235,6 @@ void Server::send_world_state(int client_id, std::unordered_map<std::string, std
             write(client_id,&user_serialization[0],1024);
             sending = true;
         }
-        if (sending)
-        {
-            std::cout << "sending world state to client " << client_id << std::endl;
-        }
     }
 }
 
