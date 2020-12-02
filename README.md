@@ -11,5 +11,6 @@
 <h2>Controls</h2>
 <ul>
   <li>Click to move</li>
+  <li>Enter to type and send messages</li>
   <li>Quit with esc</li>
 </ul>
