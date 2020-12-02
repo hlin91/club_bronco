@@ -193,7 +193,10 @@ std::unordered_map<std::string, std::string> Client::processResponse(std::string
         parseHeader(headers[i],key,value);
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
-    free(headers);
+    for (unsigned int h = 0; h < numHeaders; h++)
+    {
+        free(headers[h]);
+    }
     return key_and_values;
 }
 
