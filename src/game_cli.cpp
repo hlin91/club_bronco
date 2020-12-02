@@ -424,9 +424,9 @@ public:
                 if (input.size())
                 {
                     std::string m = player.name + ": " + input;
-                    addMessage(m.substr(0, 45));
+                    addMessage(m.substr(0, MBOX_CHAR/WIDTH));
                     if (m.size() > MBOX_CHAR_WIDTH) // If the player name plus the message exceeds message box width
-                        addMessage("    " + m.substr(45)); // Print the rest on a indented new line
+                        addMessage("    " + m.substr(MBOX_CHAR_WIDTH)); // Print the rest on a indented new line
                     sendMessage(input);
                 }
                 input.clear();
