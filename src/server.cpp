@@ -76,6 +76,7 @@ void Server::addUser(std::unordered_map<std::string,std::string> key_and_values)
     {
         std::cout << kv.first << " : " << kv.second << std::endl;
     }
+    return;
 }
 
 /*
@@ -175,6 +176,7 @@ void Server::echo_message_to_world(char* request, int cid) {
             bytes_written = write(std::stoi(c.first,nullptr), request, 1024);
         }
     }
+    return;
 }
 
 void Server::process_request(char* request, int client_id)
@@ -184,14 +186,18 @@ void Server::process_request(char* request, int client_id)
     char message[1024];
     unsigned int numHeaders = 0;
     parseRequest(request,req,headers,message,&numHeaders);
-    std::unordered_map<std::string,std::string> key_and_values;
 
+    std::unordered_map<std::string,std::string> key_and_values;
     for (int i = 0; i < numHeaders; i++) {
         char key[1024];
         char value[1024];
         parseHeader(headers[i],key,value);
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
+    }
+    for (unsigned int h = 0; h < numHeaders; ++h)
+    {
+        free(headers[h]);
     }
 
     //Maybe the user only wants the world state?
@@ -205,15 +211,11 @@ void Server::process_request(char* request, int client_id)
     {
         Server::exit_character(key_and_values,client_id);
         Server::echo_message_to_world(request,client_id);
-
     }
     else {
         Server::updateOrAddUser(key_and_values);
     }
-    for (unsigned int h = 0; h < numHeaders; ++h)
-    {
-        free(headers[h]);
-    }
+    return;
 }
 
 void Server::exit_character(std::unordered_map<std::string,std::string> key_and_values, int client_id)
@@ -278,7 +280,7 @@ void Server::handle_client(int client_ptr)
         {
             break;
         }
-        if (request[0] != '\0') {
+        if (std::to_string(request[0]).compare("") != 0) {
             Server::process_request(request, client_id);
         }
         bzero(request, sizeof(request));
