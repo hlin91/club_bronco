@@ -111,12 +111,16 @@ void Client::executeResponse(std::unordered_map<unsigned int, Character>& others
 void Client::executeMessage(std::deque<std::string>& messages, std::unordered_map<std::string,std::string>& response_headers, const unsigned int MAX_MESSAGES)
 {
     std::cout << "Receiving message..." << std::endl;
-    std::string user_message = response_headers["name"] + ": " + response_headers["message"];
-    if (messages.size() >= MAX_MESSAGES)
+    std::string m = response_headers["name"] + ": " + response_headers["message"];
+    messages.push_back(m.substr(0,45));
+    if (m.size() > 45)
+    {
+        messages.push_back(m.substr(45));
+    }
+    while (messages.size() > MAX_MESSAGES)
     {
         messages.pop_front();
     }
-    messages.push_back(user_message);
 }
 
 void Client::updateCharacter(std::unordered_map<unsigned int, Character>& others, std::unordered_map<std::string,std::string> response_headers)
