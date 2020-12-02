@@ -274,7 +274,10 @@ void Server::handle_client(int client_ptr)
     while (1) {
         bzero(request, sizeof(request));
         bytes_read = recv(client_id, request, 1024, 0);
-        check_if_error(bytes_read, "Error reading from client!!!");
+        if (bytes_read < 0)
+        {
+            break;
+        }
         if (request[0] != '\0') {
             Server::process_request(request, client_id);
         }
