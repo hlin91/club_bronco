@@ -7,6 +7,7 @@
 #include <deque>
 #include <unordered_map>
 #include "character.cpp"
+#include <sstream>
 
 class Client
 {
@@ -21,6 +22,7 @@ private:
     bool open_for_receiving = true;
     int port = 4310;
     std::thread thread_receive;
+    std::stringstream ss;
 
     int check_if_error(int returned_value, char *error_msg);
     void create_server_socket();

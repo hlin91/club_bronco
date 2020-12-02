@@ -14,7 +14,7 @@
 #include <mutex>
 #include "client.hpp"
 #include "Parser.h"
-#include <chrono>
+#include <ctime>
 #include <unordered_map>
 
 #define SA struct sockaddr
@@ -37,10 +37,12 @@ std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
     std::unordered_map<std::string,std::string> headers;
     headers["id"] = Client::getId();
     headers["name"] = Client::getName();
-    //std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    //std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    //std::tm now_tm = *std::localtime(&now_c);
-    //TODO: account for timestamp
+    std::time_t seconds;
+    std::time(&seconds);
+    ss << seconds;
+    std::string seconds_str = ss.str();
+    headers["time"] = seconds_str;
+    ss.str(std::string());
     return headers;
 }
 
@@ -50,6 +52,8 @@ std::unordered_map<std::string,std::string> Client::getDefaultHeaders()
 */
 int Client::getWorldState(std::unordered_map<unsigned int, Character>& others)
 {
+    sendWSRequest();
+    std::this_thread::sleep_for (std::chrono::milliseconds(83));
     std::cout << "getting world state..." << std::endl;
     std::string resp = Client::pop_response();
     std::unordered_map<std::string,std::string> response_headers;

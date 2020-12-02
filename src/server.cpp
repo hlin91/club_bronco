@@ -126,6 +126,12 @@ void Server::updateUser(std::unordered_map<std::string,std::string> key_and_valu
         user["yPos"] = y;
         std::cout << user["name"] << " now moving" << std::endl;
     }
+
+    if (Server::inMap(key_and_values,"time"))
+    {
+        user["time"] = key_and_values["time"];
+    }
+
     //Replace the old user with the updated user
     world_state[key_and_values["id"]] = user;
     std::cout << key_and_values["id"] << " now updated:" << std::endl;
@@ -173,11 +179,6 @@ void Server::process_request(char* request, int client_id)
     char message[1024];
     unsigned int numHeaders = 0;
     parseRequest(request,req,headers,message,&numHeaders);
-    //Maybe the user only wants the world state?
-    if (std::string(req).find("GET") != std::string::npos) {
-        send_world_state(client_id);
-        return;
-    }
     std::unordered_map<std::string,std::string> key_and_values;
 
     for (int i = 0; i < numHeaders; i++) {
@@ -187,8 +188,13 @@ void Server::process_request(char* request, int client_id)
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
+    //Maybe the user only wants the world state?
+    if (std::string(req).find("GET") != std::string::npos) {
+        send_world_state(client_id, key_and_values);
+        return;
+    }
     //Key and values should now hold all the "important" values of the character that was sent
-    if (key_and_values.find("message") != key_and_values.end()) {
+    else if (key_and_values.find("message") != key_and_values.end()) {
         Server::echo_message_to_world(request,client_id);
     }
     else {
@@ -196,13 +202,24 @@ void Server::process_request(char* request, int client_id)
     }
 }
 
-void Server::send_world_state(int client_id) {
+void Server::send_world_state(int client_id, std::unordered_map<std::string, std::string>& key_and_values) {
     std::cout << "sending world state to client " << client_id << std::endl;
     std::string user_serialization;
+    unsigned int reqTimeStamp = 0;
+    unsigned int charTimeStamp = 0;
     for (auto kv : world_state) {
         //Don't send a user their own information!
         if (std::stoi(kv.first,nullptr) != client_id)
         {
+            //Check for correct timing
+            reqTimeStamp = std::stoi(key_and_values["time"]);
+            charTimeStamp = std::stoi(kv.second["time"]);
+
+            if (reqTimeStamp > charTimeStamp)
+            {
+                continue;
+            }
+
             //Serialize a user into a POST request
             user_serialization = Server::build_request("POST",kv.second);
             //Write this user serialization to the user who requested it.
@@ -232,7 +249,6 @@ void Server::handle_client(int client_ptr)
     rc = write(client_id,client_id_str.c_str(),1024);
 
     //Send them all the "characters"
-    Server::send_world_state(client_id);
 
     // //Create this user and add them to the map
     // std::unordered_map<std::string, std::string> user_map;
