@@ -26,7 +26,7 @@ bool parseRequest(char *, char *, std::vector<std::string> &, char *);
     key: String to store the token to the left of the colon
     val: String to store the token to the right of the colon
 */
-bool parseHeader(char *, char *, char *);
+bool parseHeader(const char *, char *, char *);
 
 /*
     Parse an HTTP response and extract the status line, headers, and optional message

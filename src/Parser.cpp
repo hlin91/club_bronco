@@ -59,7 +59,7 @@ bool parseRequest(char *s, char *req, std::vector<std::string> &headers, char *m
     key: String to store the token to the left of the colon
     val: String to store the token to the right of the colon
 */
-bool parseHeader(char *s, char *key, char *val)
+bool parseHeader(const char *s, char *key, char *val)
 {
     unsigned int pos1 = 0;
     unsigned int pos2 = strlen(s) - 1;
