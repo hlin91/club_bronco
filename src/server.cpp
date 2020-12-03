@@ -44,7 +44,7 @@ int Server::create_server_socket(int port)
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
     //This will have to change for port forwarding
-    server_address.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+    server_address.sin_addr.s_addr = inet_addr(IP_ADDRESS_LOCAL);
     server_address.sin_port = htons(PORT);
     
     //Create the socket
@@ -53,13 +53,11 @@ int Server::create_server_socket(int port)
     //Check for error with socket
     Server::check_if_error(sock, "Error with socket");
 
-    // Binding newly created socket to given IP and verification 
-    if ((bind(sock, (SA*)&server_address, sizeof(server_address))) != 0) { 
-        printf("socket bind failed...\n"); 
-        exit(0); 
-    } 
-
     Server::check_if_error(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)), "setsockopt");
+
+    // Binding newly created socket to given IP and verification 
+    int bind_val = bind(sock, (SA*)&server_address, sizeof(server_address));
+    Server::check_if_error(bind_val, "Error with binding");
 
     // Attempt to make the socket (fd) a listening type socket
     Server::check_if_error(listen(sock, 10), "Could not make the socket a listening type socket");
