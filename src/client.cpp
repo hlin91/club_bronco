@@ -289,6 +289,7 @@ void Client::sendMessage(std::string message)
 
 void Client::sendExit()
 {
+    Client::sendMessage("Goodbye!");
     std::string method = "POST";
     std::unordered_map<std::string,std::string> headers = getDefaultHeaders();
     headers["exit"] = "1";
