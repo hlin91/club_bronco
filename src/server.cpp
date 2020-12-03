@@ -43,7 +43,7 @@ int Server::create_server_socket(int port)
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
     //This will have to change for port forwarding
-    server_address.sin_addr.s_addr = INADDR_ANY;
+    server_address.sin_addr.s_addr = inet_addr("192.168.0.41");
     server_address.sin_port = htons(port);
     
     //Create the socket
@@ -182,7 +182,7 @@ void Server::echo_message_to_world(char* request, int cid) {
 void Server::process_request(char* request, int client_id)
 {
     char req[1024];
-    char *headers[12];
+    char *headers[1024];
     char message[1024];
     unsigned int numHeaders = 0;
     parseRequest(request,req,headers,message,&numHeaders);
@@ -192,12 +192,9 @@ void Server::process_request(char* request, int client_id)
         char key[1024];
         char value[1024];
         parseHeader(headers[i],key,value);
+        //free(headers[i]);
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
-    }
-    for (unsigned int h = 0; h < numHeaders; ++h)
-    {
-        free(headers[h]);
     }
 
     //Maybe the user only wants the world state?

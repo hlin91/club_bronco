@@ -187,21 +187,20 @@ void Client::addCharacter(std::unordered_map<unsigned int, Character>& others, s
 */
 std::unordered_map<std::string, std::string> Client::processResponse(std::string response) {
     char req[1024];
-    char *headers[12];
+    char *headers[1024];
     char message[1024];
     unsigned int numHeaders = 0;
     parseRequest(&response[0],req,headers,message,&numHeaders);
+
+    std::cout << response << std::endl << numHeaders << std::endl;
 
     std::unordered_map<std::string,std::string> key_and_values;
     for (int i = 0; i < numHeaders; i++) {
         char key[1024];
         char value[1024];
         parseHeader(headers[i],key,value);
+        //free(headers[i]);
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
-    }
-    for (unsigned int h = 0; h < numHeaders; ++h)
-    {
-        free(headers[h]);
     }
     return key_and_values;
 }
@@ -314,7 +313,7 @@ void Client::create_server_socket()
 
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = INADDR_ANY;
+    server_address.sin_addr.s_addr = inet_addr("172.88.76.72");
     server_address.sin_port = htons(port);
     
     //Create the socket
