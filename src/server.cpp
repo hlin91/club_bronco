@@ -173,7 +173,8 @@ void Server::echo_message_to_world(char* request, int cid) {
         //Only send this message to people who AREN'T the user.
         if (c.first.compare(std::to_string(cid)) != 0)
         {
-            bytes_written = write(std::stoi(c.first,nullptr), request, 1024);
+            //TODO check if client is still valid somehow?
+            bytes_written = send(std::stoi(c.first,nullptr), request, 1024,MSG_NOSIGNAL);
         }
     }
     return;
