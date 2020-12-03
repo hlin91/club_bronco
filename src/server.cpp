@@ -14,6 +14,7 @@
 #include <mutex>
 #include "server.hpp"
 #include "Parser.h"
+#include "config.h"
 
 
 #define SA struct sockaddr
@@ -43,8 +44,8 @@ int Server::create_server_socket(int port)
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
     //This will have to change for port forwarding
-    server_address.sin_addr.s_addr = inet_addr("192.168.0.41");
-    server_address.sin_port = htons(port);
+    server_address.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+    server_address.sin_port = htons(PORT);
     
     //Create the socket
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -310,7 +311,7 @@ Server::Server(int p)
 
 int Server::run()
 {
-    servSock = Server::create_server_socket(port);
+    servSock = Server::create_server_socket(PORT);
     int client;
 
     while (true) {
@@ -327,6 +328,6 @@ int Server::run()
 
 int main() 
 {
-    Server myServer(4310);
+    Server myServer(PORT);
     myServer.run();
 }

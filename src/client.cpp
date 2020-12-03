@@ -16,9 +16,12 @@
 #include "Parser.h"
 #include <ctime>
 #include <unordered_map>
+#include "config.h"
 
 #define SA struct sockaddr
 #define MBOX_CHAR_W = 45;
+
+#define IP_ADDRESS "172.88.76.72"
 
 Client::Client(int p, std::string n)
 {

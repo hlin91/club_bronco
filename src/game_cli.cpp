@@ -12,7 +12,6 @@
 #include "client.cpp"
 
 #define POLL_RATE 17 // Rate in milliseconds at which to poll the server
-#define PORT 4310
 
 std::string PLAYER_NAME; // The name of the player
 Client myClient(PORT,"");
