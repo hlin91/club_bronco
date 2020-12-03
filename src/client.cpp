@@ -187,21 +187,19 @@ void Client::addCharacter(std::unordered_map<unsigned int, Character>& others, s
 */
 std::unordered_map<std::string, std::string> Client::processResponse(std::string response) {
     char req[1024];
-    char *headers[1024];
+    std::vector<std::string> headers;
     char message[1024];
-    unsigned int numHeaders = 0;
-    parseRequest(&response[0],req,headers,message,&numHeaders);
-
-    std::cout << response << std::endl << numHeaders << std::endl;
+    parseResponse(&response[0],req,headers,message);
 
     std::unordered_map<std::string,std::string> key_and_values;
-    for (int i = 0; i < numHeaders; i++) {
+    for (int i = 0; i < headers.size(); i++) {
         char key[1024];
         char value[1024];
         parseHeader(headers[i],key,value);
         //free(headers[i]);
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
+    headers.clear()
     return key_and_values;
 }
 

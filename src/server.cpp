@@ -182,20 +182,19 @@ void Server::echo_message_to_world(char* request, int cid) {
 void Server::process_request(char* request, int client_id)
 {
     char req[1024];
-    char *headers[1024];
+    std::vector<std::string> headers;
     char message[1024];
-    unsigned int numHeaders = 0;
-    parseRequest(request,req,headers,message,&numHeaders);
+    parseRequest(request,req,headers,message);
 
     std::unordered_map<std::string,std::string> key_and_values;
-    for (int i = 0; i < numHeaders; i++) {
+    for (int i = 0; i < headers.size(); i++) {
         char key[1024];
         char value[1024];
         parseHeader(headers[i],key,value);
-        //free(headers[i]);
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
+    headers.clear();
 
     //Maybe the user only wants the world state?
     if (std::string(req).find("GET") != std::string::npos) {
