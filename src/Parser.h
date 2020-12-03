@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdbool.h>
+#include <vector>
+#include <string>
 
 #define BUFF_MAX 1024
 
@@ -16,7 +17,7 @@
     message: String to store the optional message
     numHeaders: Stores the number of headers parsed
 */
-bool parseRequest(char *, char *, char **, char *, unsigned int *);
+bool parseRequest(char *, char *, std::vector<std::string> &, char *);
 
 /*
     Parse a HTTP header into a key value pair
@@ -36,4 +37,4 @@ bool parseHeader(char *, char *, char *);
     message: String to store the optional message
     numHeaders: Stores the number of headers parsed
 */
-bool parseResponse(char *, char *, char **, char *, unsigned int *);
+bool parseResponse(char *, char *, std::vector<std::string> &, char *);

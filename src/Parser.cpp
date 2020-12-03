@@ -10,16 +10,14 @@
     message: String to store the optional message
     numHeaders: Stores the number of headers parsed
 */
-bool parseRequest(char *s, char *req, char **headers, char *message, unsigned int *numHeaders)
+bool parseRequest(char *s, char *req, std::vector<std::string> &headers, char *message)
 {
     char token[BUFF_MAX];
     char *p1 = s;
     char *p2 = NULL;
     /* Initialize return values */
     req[0] = '\0';
-    headers[0] = NULL;
     message[0] = '\0';
-    *numHeaders = 0;
     if (strlen(s) == 0)
         return false;
     /* Grab first line as request line */
@@ -41,13 +39,11 @@ bool parseRequest(char *s, char *req, char **headers, char *message, unsigned in
         token[p2 - p1] = '\0';
         if (strlen(token) == 0) /* Encountered blank line */
             break;
-        headers[*numHeaders] = (char*) malloc(strlen(token) * sizeof(char));
-        strcpy(headers[*numHeaders], token);
-        ++(*numHeaders);
+        std::string s(token);
+        headers.push_back(s);
         p1 = p2 + 1;
         p2 = strchr(p1, '\n');
     }
-    headers[*numHeaders] = NULL;
     if (p2 == NULL)
         return true;
     /* Store the remainder as the message body */
@@ -110,7 +106,7 @@ bool parseHeader(char *s, char *key, char *val)
     message: String to store the optional message
     numHeaders: Stores the number of headers parsed
 */
-bool parseResponse(char *s, char *status, char **headers, char *message, unsigned int *numHeaders)
+bool parseResponse(char *s, char *status, std::vector<std::string> &headers, char *message)
 {
-    return parseRequest(s, status, headers, message, numHeaders);
+    return parseRequest(s, status, headers, message);
 }
