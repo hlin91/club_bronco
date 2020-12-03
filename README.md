@@ -15,7 +15,7 @@
 </p>
 <h2>For OLC Game Engine</h2>
 <a href="https://github.com/OneLoneCoder/olcPixelGameEngine/wiki/Compiling-on-Linux">Compilation on Linux</a>
-<br><\br>
+<br>
 <a href="https://github.com/OneLoneCoder/olcPixelGameEngine/wiki/Compiling-with-Visual-Studio">Compilation on Windows</a>
 <h2>Controls</h2>
 <ul>
