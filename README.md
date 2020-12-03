@@ -4,6 +4,11 @@
 <p>
   Navigate to the root directory and run the Makefile with <code>make</code>. Start the server with <code>./server</code> and the client with <code>./client</code>.
 </p>
+<h2>Configuration</h2>
+<p>
+  To change the public IP address the server is hosted on, edit <code>IP_ADDRESS</code> in config.h.<br>
+  To change the local IP address the server listens on, edit <code>IP_ADDRESS_LOCAL</code> in config.h.
+</p>
 <h2>Supported Platforms</h2>
 <p>
   Linux and OSX 10.15 or above
