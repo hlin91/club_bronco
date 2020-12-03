@@ -13,6 +13,9 @@
 <p>
   Linux and OSX 10.15 or above
 </p>
+<h2>For OLC Game Engine</h2>
+<a href="https://github.com/OneLoneCoder/olcPixelGameEngine/wiki/Compiling-on-Linux">Compilation on Linux</a>
+<a href="https://github.com/OneLoneCoder/olcPixelGameEngine/wiki/Compiling-with-Visual-Studio">Compilation on Windows</a>
 <h2>Controls</h2>
 <ul>
   <li>Click to move</li>
