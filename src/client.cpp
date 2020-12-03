@@ -195,11 +195,11 @@ std::unordered_map<std::string, std::string> Client::processResponse(std::string
     for (int i = 0; i < headers.size(); i++) {
         char key[1024];
         char value[1024];
-        parseHeader(headers[i],key,value);
+        parseHeader(headers[i].c_str(),key,value);
         //free(headers[i]);
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
     }
-    headers.clear()
+    headers.clear();
     return key_and_values;
 }
 

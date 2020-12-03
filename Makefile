@@ -17,8 +17,8 @@ endif
 server: src/Parser.o src/server.o
 	@${CC} -O2 -std=c++17 -o server src/Parser.o src/server.o -lpthread
 
-src/Parser.o: src/Parser.c src/Parser.h
-	@${CC} -c -O2 -std=c++17 src/Parser.c -o src/Parser.o
+src/Parser.o: src/Parser.cpp src/Parser.h
+	@${CC} -c -O2 -std=c++17 src/Parser.cpp -o src/Parser.o
 
 src/server.o: src/server.cpp
 	@${CC} -c -O2 -std=c++17 src/server.cpp -o src/server.o
