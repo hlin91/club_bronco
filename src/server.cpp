@@ -16,6 +16,7 @@
 #include "Parser.h"
 #include "config.h"
 
+#define M_SIZE 1024
 
 #define SA struct sockaddr
 
@@ -173,7 +174,7 @@ void Server::echo_message_to_world(char* request, int cid) {
         if (c.first.compare(std::to_string(cid)) != 0)
         {
             //TODO check if client is still valid somehow?
-            bytes_written = send(std::stoi(c.first,nullptr), request, 1024,MSG_NOSIGNAL);
+            bytes_written = send(std::stoi(c.first,nullptr), request, M_SIZE,MSG_NOSIGNAL);
         }
     }
     return;
@@ -181,15 +182,15 @@ void Server::echo_message_to_world(char* request, int cid) {
 
 void Server::process_request(char* request, int client_id)
 {
-    char req[1024];
+    char req[M_SIZE];
     std::vector<std::string> headers;
-    char message[1024];
+    char message[M_SIZE];
     parseRequest(request,req,headers,message);
 
     std::unordered_map<std::string,std::string> key_and_values;
     for (int i = 0; i < headers.size(); i++) {
-        char key[1024];
-        char value[1024];
+        char key[M_SIZE];
+        char value[M_SIZE];
         parseHeader(headers[i].c_str(),key,value);
         //Add each header name and value into the unordered_map
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
@@ -242,7 +243,7 @@ void Server::send_world_state(int client_id, std::unordered_map<std::string, std
             //Serialize a user into a POST request
             user_serialization = Server::build_request("POST",kv.second);
             //Write this user serialization to the user who requested it.
-            write(client_id,&user_serialization[0],1024);
+            write(client_id,&user_serialization[0],M_SIZE);
             sending = true;
         }
     }
@@ -256,7 +257,7 @@ void Server::handle_client(int client_ptr)
     char request[BUFSIZ + 1];
     bzero(request, sizeof(request));
     //Read the client's name into the buffer
-    int bytes_read = recv(client_id,request,1024,0);
+    int bytes_read = recv(client_id,request,M_SIZE,0);
     //Save into name string
     std::string name = std::string(request);
     std::cout << "Handling Client name: " << name << std::endl;
@@ -266,12 +267,12 @@ void Server::handle_client(int client_ptr)
     std::string client_id_str = std::to_string(client_id);
     int rc;
     std::cout << "Sending id to " << name << std::endl;
-    rc = write(client_id,&client_id_str[0],1024);
+    rc = write(client_id,&client_id_str[0],M_SIZE);
 
 
     while (1) {
         bzero(request, sizeof(request));
-        bytes_read = recv(client_id, request, 1024, 0);
+        bytes_read = recv(client_id, request, M_SIZE, 0);
         if (bytes_read < 0)
         {
             break;

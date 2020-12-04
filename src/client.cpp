@@ -20,6 +20,7 @@
 
 #define SA struct sockaddr
 #define MBOX_CHAR_W = 45;
+#define M_SIZE 1024
 
 #define IP_ADDRESS "172.88.76.72"
 
@@ -189,15 +190,15 @@ void Client::addCharacter(std::unordered_map<unsigned int, Character>& others, s
     Function to demodulate a string response into its headers
 */
 std::unordered_map<std::string, std::string> Client::processResponse(std::string response) {
-    char req[1024];
+    char req[M_SIZE];
     std::vector<std::string> headers;
-    char message[1024];
+    char message[M_SIZE];
     parseResponse(&response[0],req,headers,message);
 
     std::unordered_map<std::string,std::string> key_and_values;
     for (int i = 0; i < headers.size(); i++) {
-        char key[1024];
-        char value[1024];
+        char key[M_SIZE];
+        char value[M_SIZE];
         parseHeader(headers[i].c_str(),key,value);
         //free(headers[i]);
         key_and_values.insert(std::make_pair(std::string(key), std::string(value)));
@@ -338,9 +339,9 @@ void Client::receive_response()
 
     while (open_for_receiving)
     {
-        bytes_read = recv(sock,r_message,1024,0);
+        bytes_read = recv(sock,r_message,M_SIZE,0);
         while (bytes_read < 10){
-            bytes_read = recv(sock,r_message,1024,0);
+            bytes_read = recv(sock,r_message,M_SIZE,0);
         }
         
         if (r_message[0] == '\0') {
