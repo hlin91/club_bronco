@@ -29,6 +29,7 @@ int Server::check_if_error(int returned_value, std::string error_msg)
 {
     if (returned_value < 0)
     {
+        //Print the sent in error message and exit with the failure
         perror(error_msg.c_str());
         exit(EXIT_FAILURE);
     }
@@ -42,10 +43,20 @@ int Server::create_server_socket(int port)
 
     int opt = 1;
 
+    //Clear the server address
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
-    //This will have to change for port forwarding
-    server_address.sin_addr.s_addr = inet_addr(IP_ADDRESS_LOCAL);
+
+    //Use the ip address and port from the config file
+    if (NO_FRIENDS)
+    {
+        server_address.sin_addr.s_addr = INADDR_ANY;
+    }
+    else
+    {
+        server_address.sin_addr.s_addr = inet_addr(IP_ADDRESS_LOCAL);
+
+    }
     server_address.sin_port = htons(PORT);
     
     //Create the socket
@@ -63,7 +74,12 @@ int Server::create_server_socket(int port)
     // Attempt to make the socket (fd) a listening type socket
     Server::check_if_error(listen(sock, 10), "Could not make the socket a listening type socket");
 
+    //message to declare running
     std::cout << "Listening for requests on port " << port << std::endl;
+    if (NO_FRIENDS)
+    {
+        std::cout << "Running on localhost" << std::endl;
+    }
 
     return sock;
 }
@@ -254,7 +270,7 @@ void Server::handle_client(int client_ptr)
     int client_id = client_ptr;
 
     //Instantiate and clear a buffer
-    char request[BUFSIZ + 1];
+    char request[M_SIZE];
     bzero(request, sizeof(request));
     //Read the client's name into the buffer
     int bytes_read = recv(client_id,request,M_SIZE,0);

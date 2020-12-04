@@ -316,7 +316,16 @@ void Client::create_server_socket()
 
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = inet_addr("172.88.76.72");
+    if (NO_FRIENDS)
+    {
+        server_address.sin_addr.s_addr = INADDR_ANY;
+
+    }
+    else
+    {
+        server_address.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+
+    }
     server_address.sin_port = htons(port);
     
     //Create the socket
