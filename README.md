@@ -16,6 +16,7 @@
   <strong>Has not been tested on macOS Big Sur or above but is likely to still work</strong>
 </p>
 <h2>OLC Game Engine</h2>
+If <code>make</code> fails to build olcPixelGameEngine for some reason, reference the olcPixelGameEngine documentation below.<br>
 <a href="https://github.com/OneLoneCoder/olcPixelGameEngine/wiki">Information</a>
 <br>
 <a href="https://github.com/OneLoneCoder/olcPixelGameEngine/wiki/Compiling-on-Linux">Compilation on Linux</a>
