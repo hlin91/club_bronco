@@ -2,7 +2,7 @@
 <img src=https://cdn.discordapp.com/attachments/750527778062991404/779156385283702804/unknown.png height=50% width=50%>
 <h2>Build Instructions</h2>
 <p>
-  <strong>IMPORTANT: </strong>The game is configured to be purely locally hosted by default. To change this, edit config.h first. Change <code>IP_ADDRESS</code> to the public IP of the computer hosting the server, <code>IP_ADDRESS_LOCAL</code> to the local IP of the hosting computer and, <code>PORT</code> to the port number to be used for client-server communications.<br><br>
+  <strong>IMPORTANT: </strong>The game is configured to be purely locally hosted by default. To change this, edit config.h first and set <code>NO_FRIENDS<\code> to false. Then, change <code>IP_ADDRESS</code> to the public IP of the computer hosting the server, <code>IP_ADDRESS_LOCAL</code> to the local IP of the hosting computer and, <code>PORT</code> to the port number to be used for client-server communications.<br><br>
   Navigate to the root directory and run the Makefile with <code>make</code>. Start the server with <code>./server</code> and the client with <code>./client</code>.
 </p>
 <h2>Configuration</h2>
