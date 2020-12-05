@@ -1,0 +1,4 @@
+- Implemented game client
+- Implemented HTTP parser
+- Wrote Makefile
+- Helped debug client/server communications
