@@ -10,6 +10,7 @@
 #include <iterator>
 #include <vector>
 #include <thread>
+#include <signal.h>
 #include <unordered_map>
 #include <mutex>
 #include "server.hpp"
@@ -37,7 +38,7 @@ int Server::check_if_error(int returned_value, std::string error_msg)
 */
 int Server::create_server_socket(int port)
 {
-
+    signal(SIGPIPE, SIG_IGN);
     //Declare sockaddr_in struct for use with socket
     struct sockaddr_in server_address;
 
@@ -218,7 +219,7 @@ void Server::echo_message_to_world(char* request, int cid) {
         //Only send this message to people who AREN'T the user.
         if (c.first.compare(std::to_string(cid)) != 0)
         {
-            bytes_written = send(std::stoi(c.first,nullptr), request, M_SIZE,MSG_NOSIGNAL);
+            bytes_written = send(std::stoi(c.first,nullptr), request, M_SIZE,0);
             //Close the signal with a client on a bad send
             if (bytes_written < 0)
             {
