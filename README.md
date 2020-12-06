@@ -12,8 +12,7 @@
 </p>
 <h2>Supported Platforms</h2>
 <p>
-  Linux and OSX 10.15<br>
-  <strong>Has not been tested on macOS Big Sur or above but is likely to still work</strong>
+  Linux and OSX 10.15 or above<br>
 </p>
 <h2>OLC Game Engine</h2>
 If <code>make</code> fails to build olcPixelGameEngine for some reason, reference the olcPixelGameEngine documentation below.<br>
