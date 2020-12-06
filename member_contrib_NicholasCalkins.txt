@@ -1,0 +1,4 @@
+- Implemented Client class
+- Implemented Server class
+- Helped connect game client with client
+- Helped with general debugging and memory leaks
