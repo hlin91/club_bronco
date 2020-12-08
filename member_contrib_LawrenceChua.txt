@@ -1,0 +1,4 @@
+- Added and modifed error handling
+- Helped debug server and client
+- Added comments
+- Established four space indent coding convention
